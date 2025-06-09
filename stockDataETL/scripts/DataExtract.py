@@ -1,6 +1,4 @@
-from symtable import Class
-
-from stockDataAcquisition import ts_api
+from stockDataETL import ts_api
 
 class DataAcquisition:
 
@@ -19,3 +17,8 @@ class DataAcquisition:
     def getDaily(self,ts_code="",trade_date="",start_date="",end_date=""):
 
         return self.ts_api.daily(ts_code=ts_code,trade_date=trade_date,start_date=start_date,end_date=end_date)
+
+    def getStockCompany(self,ts_code="",exchange=""):
+
+        return self.ts_api.stock_company(ts_code=ts_code,exchange=exchange)
+
