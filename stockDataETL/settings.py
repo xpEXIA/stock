@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'stockDataETL.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'aliyun-mysql',
+        'NAME': 'stock',
         'USER': 'xpexia',
         'PASSWORD': 'Xp19881106',
         'HOST': 'rm-bp1yz9j4qclf59247eo.mysql.rds.aliyuncs.com',
