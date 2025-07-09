@@ -1,10 +1,11 @@
 
 from pandas.core.interchange.dataframe_protocol import DataFrame
 from stockDataETL import ts_api
+from stockDataETL import logging
 
 class GetTSData:
 
-    def __init__(self, ts_api):
+    def __init__(self, ts_api=ts_api):
 
         self.ts_api = ts_api
 
