@@ -1,6 +1,9 @@
-import pandas as pd
+from datetime import datetime
 
-from stockDataETL import pymysql_connection
+import pandas as pd
+from django.utils.formats import date_format
+from sqlalchemy import text
+from stockDataETL import engine
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL import ts_api
 import tushare as ts
@@ -18,8 +21,9 @@ b = a[(a["change_x"] > 0) & (a["change_y"] > 0)]
 c = pd.merge(b, daily3, on=['ts_code'], how="left")
 c = c[c['change'] > 0]
 d = a[(a["change_x"] < 0) & (a["change_y"] > 0)]
-stock_list.to_sql("stock_basic", con=pymysql_connection, index=False, if_exists="replace")
+stock_list.to_sql("stock_basic", con=engine, index=False, if_exists="replace")
+stock_list=pd.DataFrame()
 
-
-
-
+today = datetime.today()
+a = today.strftime("%Y%m%d")
+b = datetime.strptime(a, "%Y%m%d")

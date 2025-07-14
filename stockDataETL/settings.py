@@ -83,7 +83,7 @@ DATABASES = {
         'USER': 'xpexia',
         'PASSWORD': 'Xp19881106',
         'HOST': 'rm-bp1yz9j4qclf59247eo.mysql.rds.aliyuncs.com',
-        'PORT': '3306',
+        'PORT': 3306,
     }
 }
 
