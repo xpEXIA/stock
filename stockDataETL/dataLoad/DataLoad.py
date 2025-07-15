@@ -1,5 +1,4 @@
 
-from django.db import connection
 from pandas import DataFrame
 from stockDataETL import logging, engine
 from sqlalchemy import text
@@ -41,7 +40,7 @@ class DataLoad:
             logging.info("Search '" + sql + "' successfully")
             return result
         except Exception as e:
-            logging.error("Search '" + sql + "' failed, error info", exc_info=True)
+            logging.error("Search '" + sql + "' failed", exc_info=True)
             return None
 
     def close(self):

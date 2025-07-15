@@ -27,3 +27,5 @@ stock_list=pd.DataFrame()
 today = datetime.today()
 a = today.strftime("%Y%m%d")
 b = datetime.strptime(a, "%Y%m%d")
+
+index_basic = get_ts_data.getIndexBasic(ts_code="000001.SH",market="SZSE")
