@@ -18,17 +18,17 @@ class DataLoad:
     def truncate(self, table_name: str):
 
         try:
-            self.conn.execute(text(f"TRUNCATE TABLE {table_name};"))
-            self.conn.commit()
+            self.stock_connect.execute(text(f"TRUNCATE TABLE {table_name};"))
+            self.stock_connect.commit()
             logging.warn(f"Truncate table {table_name}")
         except Exception as e:
-            self.conn.rollback()
+            self.stock_connect.rollback()
             logging.error(f"Truncate table {table_name} failed", exc_info=True)
 
     def append(self, table_name: str, data: DataFrame):
 
         try:
-            data.to_sql(table_name, con=self.engine, if_exists='append', index=False)
+            data.to_sql(table_name, con=self.stock_connect, if_exists='append', index=False)
             logging.info(f"Append data to {table_name}, successfully append {len(data)} rows")
         except Exception as e:
             logging.error(f"Append data to {table_name} failed", exc_info=True)
@@ -36,7 +36,7 @@ class DataLoad:
     def search(self, sql: str):
 
         try:
-            result = self.conn.execute(text(sql)).fetchall()
+            result = self.stock_connect.execute(text(sql)).fetchall()
             logging.info("Search '" + sql + "' successfully")
             return result
         except Exception as e:
@@ -45,7 +45,7 @@ class DataLoad:
 
     def close(self):
 
-        self.conn.close()
+        self.stock_connect.close()
         logging.info("Database connection closed")
 
 

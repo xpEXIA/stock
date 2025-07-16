@@ -55,6 +55,49 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'stockDataETL.urls'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'sys_stock.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'biz_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'biz_stock.log',
+            'mode':'a',
+            'formatter': 'verbose',
+        },
+        'biz_console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {  # 控制你的模块的日志行为
+            'handlers': ['biz_file', 'biz_console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

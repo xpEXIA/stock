@@ -1,16 +1,26 @@
+import os
+import sys
+
 import tushare as ts
 from stockDataETL.settings import tushare_token, DATABASES
 import logging
 import pymysql
 from sqlalchemy import create_engine
 
-# 日志配置
-logging.basicConfig(
-    filemode='w',
-    filename='stock.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# 业务日志配置
+logger = logging.getLogger(__name__)
+# 自己配置会导致日志写两遍……
+# logger.basicConfig(
+#     # filemode='w',
+#     # filename='stock.log',
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.FileHandler(filename='stock.log',mode='a',encoding='utf-8'),
+#         logging.StreamHandler()
+#     ]
+# )
+
 
 # tushare 配置
 ts.set_token(tushare_token)
