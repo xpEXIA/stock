@@ -1,3 +1,4 @@
+import ast
 from datetime import datetime
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
@@ -6,11 +7,12 @@ from django.http import request, JsonResponse
 
 def initDatabase(request):
 
-    table_list = request.GET.get("table_list")
-    if table_list is None:
-        table_list = ["ods_stock_basic", "ods_trade_cal", "ods_stock_company", "ods_daily", "ods_daily_basic",
-                      "ods_index_basic", "ods_index_daily", "ods_moneyflow", "ods_stk_limit", 'dw_daily_trends',
-                      "dm_daily_replay", "dm_stock_performance", "dm_up_limit_statistics"]
+    # table_list = request.GET.get("table_list")
+    # table_list = ast.literal_eval(table_list)
+    # if table_list is None:
+    table_list = ["ods_stock_basic", "ods_trade_cal", "ods_stock_company", "ods_daily", "ods_daily_basic",
+                  "ods_index_basic", "ods_index_daily", "ods_moneyflow", "ods_stk_limit", 'dw_daily_trends',
+                  "dm_daily_replay", "dm_stock_performance", "dm_up_limit_statistics"]
 
     logger.info("开始初始化数据库")
     get_TS_data = GetTSData()

@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+import test
 from stockDataETL.run import InitDatabase
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('InitDatabase/', InitDatabase.initDatabase, name='InitDatabase'),
+    path('test/', test.test, name='test'),
 ]

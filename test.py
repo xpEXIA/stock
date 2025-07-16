@@ -1,6 +1,8 @@
+import ast
 from datetime import datetime
 
 import pandas as pd
+from django.http import JsonResponse
 from django.utils.formats import date_format
 from sqlalchemy import text
 from stockDataETL import engine
@@ -8,7 +10,18 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL import ts_api
 import tushare as ts
 
+def test(request):
 
+    a = request.GET.get("table_list")
+    print(a)
+    a = ast.literal_eval(a)
+    print(a)
+    return JsonResponse(
+        {
+            "status": "success",
+            "message": a
+        }
+    )
 
 
 get_ts_data = GetTSData()
