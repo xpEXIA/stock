@@ -22,6 +22,15 @@ def dailyTask(request):
             }
         )
     else:
+
+        logger.info("开始更新股票基础数据, 表ods_stock_basic")
+        data_load.truncate("ods_stock_basic")
+        get_stock_basic = get_TS_data.getStockBasic()
+        if get_stock_basic.empty:
+            logger.error("ods_stock_basic数据库数据导入失败, 数据为空")
+            failure_list.append("ods_stock_basic")
+        data_load.append("ods_stock_basic", get_stock_basic)
+
         logger.info("开始获取日线行情数据, 表ods_daily")
         get_daily = get_TS_data.getDaily(trade_date=get_trade_cal['cal_date'])
         if get_daily.empty:

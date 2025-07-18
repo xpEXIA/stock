@@ -1,5 +1,6 @@
 # SET @today = date_format(current_date(),'%Y-%m-%d');
 SET @today = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
+SET @a = :a;
 # SET @yesterday = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
 SET @yesterday = date_format(date_sub(current_date(),interval 2 day ),'%Y-%m-%d');
 
