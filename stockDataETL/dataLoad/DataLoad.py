@@ -33,10 +33,10 @@ class DataLoad:
         except Exception as e:
             logging.error(f"Append data to {table_name} failed", exc_info=True)
 
-    def search(self, sql: str):
+    def search(self, sql: str, parameters: dict = None):
 
         try:
-            result = self.stock_connect.execute(text(sql)).fetchall()
+            result = self.stock_connect.execute(text(sql), parameters).fetchall()
             logging.info("Search '" + sql + "' successfully")
             return result
         except Exception as e:

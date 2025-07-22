@@ -2,24 +2,26 @@ import ast
 from datetime import datetime
 
 import pandas as pd
+from django.db.models.expressions import result
 from django.http import JsonResponse
 from django.utils.formats import date_format
 from sqlalchemy import text
-from stockDataETL import engine
+from stockDataETL import engine, logger
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL import ts_api
 import tushare as ts
 
+from stockDataETL.dataLoad.DataLoad import DataLoad
+from stockDataETL.scripts.dm_daily_replay_daily import dm_daily_replay_daily
+
+
 def test(request):
 
-    a = request.GET.get("table_list")
-    print(a)
-    a = ast.literal_eval(a)
-    print(a)
+    result = dm_daily_replay_daily(trade_date="2025-07-17")
     return JsonResponse(
         {
             "status": "success",
-            "message": a
+            "message": result
         }
     )
 

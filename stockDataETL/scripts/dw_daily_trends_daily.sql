@@ -1,8 +1,9 @@
 # SET @today = date_format(current_date(),'%Y-%m-%d');
-SET @today = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
-SET @a = :a;
-# SET @yesterday = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
-SET @yesterday = date_format(date_sub(current_date(),interval 2 day ),'%Y-%m-%d');
+# SET @today = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
+SET @today = :today;
+SET @last_day = :last_day;
+# SET @last_day = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
+# SET @last_day = date_format(date_sub(current_date(),interval 2 day ),'%Y-%m-%d');
 
 Insert Into dw_daily_trends (ts_code, trade_date,open, high, low, close, pre_close, pct_chg,
                             open_pct_chg, high_pct_chg, low_pct_chg, vol, amout, name, industry,market,
