@@ -1,10 +1,15 @@
 # SET @today = date_format(current_date(),'%Y-%m-%d');
 # SET @today = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
-SET @today = :today;
-SET @last_day = :last_day;
+SET @today = :trade_date;
+SET @last_day = (
+            select
+                pretrade_date
+            from ods_trade_cal
+            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
+);
+SET @last_day = str_to_date(@last_day,'%Y%m%d');
 # SET @last_day = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
 # SET @last_day = date_format(date_sub(current_date(),interval 2 day ),'%Y-%m-%d');
-
 Insert Into dw_daily_trends (ts_code, trade_date,open, high, low, close, pre_close, pct_chg,
                             open_pct_chg, high_pct_chg, low_pct_chg, vol, amout, name, industry,market,
                             turnover_rate_f, volume_ratio, pe, total_mv, circ_mv, up_limit, down_limit, pre_high,
@@ -12,7 +17,7 @@ Insert Into dw_daily_trends (ts_code, trade_date,open, high, low, close, pre_clo
                              sell_lg_amount, buy_elg_amount,sell_elg_amount, net_mf_amount, buy_elg_net_amount,
                              buy_elg_net_amount_rate, buy_lg_net_amount, buy_lg_net_amount_rate, buy_md_net_amount,
                              buy_md_net_amount_rate, buy_sm_net_amount, buy_sm_net_amount_rate,
-                             net_d5_amount, up_days)
+                             net_d5_amount, ctu_up_days)
 select
     ods_daily.ts_code as ts_code,
     ods_daily.trade_date as trade_date,
@@ -59,12 +64,12 @@ select
     case
         when ods_daily.pct_chg > 0 then (
             case
-                when pre_daily_trends.up_days is Null then 0
-                else pre_daily_trends.up_days
+                when pre_daily_trends.ctu_up_days is Null then 0
+                else pre_daily_trends.ctu_up_days
             end
         ) + 1
         else 0
-    end as up_days
+    end as ctu_up_days
 from ods_daily left join ods_stock_basic
         on ods_daily.ts_code = ods_stock_basic.ts_code
     left join ods_daily_basic
@@ -94,7 +99,7 @@ from ods_daily left join ods_stock_basic
     left join (
             select
                 dw_daily_trends.ts_code as ts_code,
-                dw_daily_trends.up_days as up_days
+                dw_daily_trends.ctu_up_days as ctu_up_days
             from dw_daily_trends
             where trade_date = @yesterday
     ) pre_daily_trends

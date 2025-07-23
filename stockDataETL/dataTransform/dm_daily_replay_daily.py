@@ -3,6 +3,7 @@ from datetime import datetime
 from pandas import DataFrame
 from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
+from stockDataETL.dataTransform.CommonUtils.get_pretrade_date import get_pretrade_date
 
 
 def dm_daily_replay_daily(trade_date: str) -> str:
@@ -11,17 +12,7 @@ def dm_daily_replay_daily(trade_date: str) -> str:
     load_data = DataLoad()
 
     logger.info("获取交易日历数据")
-    pretrade_date = load_data.search(
-        """
-        select pretrade_date
-        from ods_trade_cal
-        where cal_date = :trade_date
-        """,
-        {
-            "trade_date": datetime.strptime(trade_date, "%Y-%m-%d").strftime("%Y%m%d")
-            # "trade_date": "20250716"
-        }
-    )[0][0]
+    pretrade_date = get_pretrade_date(trade_date)
 
     logger.info("获取复盘计算数据")
     trade_date_data =  load_data.search(
@@ -76,5 +67,6 @@ def dm_daily_replay_daily(trade_date: str) -> str:
     dm_daily_replay_data = DataFrame(dm_daily_replay_data,index=[0])
     load_data.append("dm_daily_replay",dm_daily_replay_data)
 
+    load_data.close()
     return "script run success"
 

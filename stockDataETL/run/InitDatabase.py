@@ -113,7 +113,6 @@ def initDatabase(request):
         data_load.append("ods_stk_limit", get_stk_limit)
 
     data_load.close()
-
     if failure_list == []:
         logger.info("初始化数据库成功")
         return JsonResponse(

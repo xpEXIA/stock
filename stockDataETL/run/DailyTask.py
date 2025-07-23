@@ -15,6 +15,7 @@ def dailyTask(request):
     today = datetime.today().strftime("%Y%m%d")
     get_trade_cal = get_TS_data.getTradeCal(start_date=today, end_date=today)
     if get_trade_cal['is_open'] != 1:
+        data_load.close()
         return JsonResponse(
             {
                 "status": "error",
@@ -69,6 +70,7 @@ def dailyTask(request):
             failure_list.append("ods_stk_limit")
         data_load.append("ods_stk_limit", get_stk_limit)
 
+        data_load.close()
         if failure_list == []:
             logger.info("每日数据获取成功")
             return JsonResponse(

@@ -43,10 +43,11 @@ class DataLoad:
             logging.error("Search '" + sql + "' failed", exc_info=True)
             return None
 
-    def execute(self, sql: str, sql_name: str, params: dict = None):
+    def execute(self, sql: str, sql_name: str, parameters: dict = None):
 
         try:
-            result = self.stock_connect.execute(text(sql), params)
+            with self.stock_connect.begin():
+                result = self.stock_connect.execute(text(sql), parameters)
             logging.info("Execute '" + sql_name + "' successfully")
             return result
         except Exception as e:
