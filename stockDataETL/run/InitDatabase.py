@@ -1,5 +1,5 @@
 import ast
-from datetime import datetime
+from datetime import datetime, timedelta
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
@@ -31,12 +31,8 @@ def initDatabase(request):
     data_load.append("ods_stock_basic", get_stock_basic)
 
     logger.info("开始初始化交易日历数据, 表ods_trade_cal")
-    start_date = (datetime.today()
-                .replace(month=datetime.today().month - 1)
-                .strftime("%Y%m%d"))
-    end_date = (datetime.today()
-                .replace(year=datetime.strptime(start_date, "%Y%m%d").year + 1)
-                .strftime("%Y%m%d"))
+    start_date = (datetime.today() - timedelta(year=1)).strftime("%Y%m%d")
+    end_date = (datetime.today() + timedelta(month=6).strftime("%Y%m%d"))
     get_trade_cal = get_TS_data.getTradeCal(start_date=start_date, end_date=end_date)
     if get_trade_cal.empty:
         logger.error("ods_trade_cal数据库数据导入失败, 数据为空")
