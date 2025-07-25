@@ -1,9 +1,13 @@
-
 from datetime import datetime
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 from django.http import request, JsonResponse
+from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
+from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
+from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
+from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
+
 
 def dailyTask(request):
 
@@ -69,6 +73,35 @@ def dailyTask(request):
             logger.error(f"ods_stk_limit数据库数据导入失败, 数据为空, 交易日: {get_trade_cal['cal_date']}")
             failure_list.append("ods_stk_limit")
         data_load.append("ods_stk_limit", get_stk_limit)
+
+        trade_date = datetime.strptime(get_trade_cal['cal_date'], "%Y%m%d").strftime("%Y-%m-%d")
+        logger.info("开始计算股票日趋势数据, 表dw_daily_trends")
+        try:
+            dw_daily_trends_daily(trade_date)
+        except Exception as e:
+            logger.error(f"dw_daily_trends_daily执行失败: {str(e)}")
+            failure_list.append("dw_daily_trends")
+
+        logger.info("开始计算日复盘数据, 表dm_daily_replay")
+        try:
+            dm_daily_replay_daily(trade_date)
+        except Exception as e:
+            logger.error(f"dm_daily_replay_daily执行失败: {str(e)}")
+            failure_list.append("dm_daily_replay")
+
+        logger.info("开始计算个股股性数据, 表dm_stock_performance")
+        try:
+            dm_stock_performance_daily(trade_date)
+        except Exception as e:
+            logger.error(f"dm_stock_performance_daily执行失败: {str(e)}")
+            failure_list.append("dm_stock_performance")
+
+        logger.info("开始计算每日涨停数据, 表dm_up_limit_statistics")
+        try:
+            dm_up_limit_statistics_daily(trade_date)
+        except Exception as e:
+            logger.error(f"dm_up_limit_statistics_daily执行失败: {str(e)}")
+            failure_list.append("dm_up_limit_statistics")
 
         data_load.close()
         if failure_list == []:

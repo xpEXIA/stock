@@ -64,7 +64,7 @@ def dm_daily_replay_daily(trade_date: str) -> str:
     dm_daily_replay_data["last_up_5_close_up"] = last_up_5[trade_date_data["close"] > 0]["ts_code"].count()
     dm_daily_replay_data["last_up_5_open_up_5"] = last_up_5[trade_date_data["open"] >= 0.05]["ts_code"].count()
     dm_daily_replay_data["last_up_5_close_up_5"] = last_up_5[trade_date_data["close"] >= 0.05]["ts_code"].count()
-    dm_daily_replay_data = DataFrame(dm_daily_replay_data,index=[0])
+    dm_daily_replay_data = DataFrame(dm_daily_replay_data)
     load_data.append("dm_daily_replay",dm_daily_replay_data)
 
     load_data.close()

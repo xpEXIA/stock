@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
-def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> str:
+def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
 
     data_load = DataLoad()
     data = data_load.search(
