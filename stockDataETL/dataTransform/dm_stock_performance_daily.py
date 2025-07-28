@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
 from os import rename
-
 import pandas as pd
 from pandas import DataFrame
+from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
 def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
 
     data_load = DataLoad()
+    logger.info(f"开始处理股性数据, 交易日:{trade_date}, 表dm_stock_performance")
     data = data_load.search(
         """
         select 

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from pandas import DataFrame
+from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
 
@@ -9,6 +10,7 @@ def dm_up_limit_statistics_daily(trade_date: str) -> None:
     pre_trade_date =((datetime.strptime(trade_date, "%Y-%m-%d")
                            - timedelta(days=1))
                      .strftime("%Y-%m-%d"))
+    logger.info(f"开始处理股票涨停数据, 交易日:{trade_date}, 表dm_up_limit_statistics")
     data  = data_load.search(
         """
         select 
@@ -56,7 +58,7 @@ def dm_up_limit_statistics_daily(trade_date: str) -> None:
                                                          & (data['trade_code'] == trade_date)
                                                          & (data['open'] < 0)]
 
-    dm_up_limit_statistics_data = DataFrame(dm_up_limit_statistics_data)
+    dm_up_limit_statistics_data = DataFrame(dm_up_limit_statistics_data, index=[0])
 
     data_load.append('dm_up_limit_statistics', dm_up_limit_statistics_data)
     data_load.close()

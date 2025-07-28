@@ -4,6 +4,11 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 from django.http import request, JsonResponse
+from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
+from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
+from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
+from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
+
 
 def initDatabase(request):
 
@@ -108,7 +113,21 @@ def initDatabase(request):
             continue
         data_load.append("ods_stk_limit", get_stk_limit)
 
+    logger.info("开始初始化股票日趋势数据, 表dw_daily_trends")
+    for trade_date in trade_date_list[1:]:
+        dw_daily_trends_daily(trade_date=trade_date)
 
+    logger.info("开始初始化股票日复盘数据, 表dm_daily_replay")
+    for trade_date in trade_date_list[1:]:
+        dm_daily_replay_daily(trade_date=trade_date)
+
+    logger.info("开始初始化个股股性数据, 表dm_stock_performance")
+    for trade_date in trade_date_list[60:]:
+        dm_stock_performance_daily(trade_date=trade_date)
+
+    logger.info("开始初始化涨停数据, 表dm_up_limit_statistics")
+    for trade_date in trade_date_list[1:]:
+        dm_up_limit_statistics_daily(trade_date=trade_date)
 
 
     data_load.close()
