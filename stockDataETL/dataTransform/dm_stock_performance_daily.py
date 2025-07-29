@@ -5,9 +5,11 @@ from pandas import DataFrame
 from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
-def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
+def dm_stock_performance_daily(trade_date: str,
+                               interval: int = 180,
+                               connect: object = DataLoad()) -> None:
 
-    data_load = DataLoad()
+    data_load = connect
     logger.info(f"开始处理股性数据, 交易日:{trade_date}, 表dm_stock_performance")
     data = data_load.search(
         """
@@ -57,9 +59,10 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
     def _cal_pct_chg(data,up_data,cal_col,cal_fun,groupby,merge_on):
 
         up_data["trade_date"] = up_data["trade_date"].apply(
-            lambda x: (
-                datetime.strptime(x, "%Y-%m-%d") + timedelta(days=1)
-            ).strftime("%Y-%m-%d")
+            # lambda x: (
+            #     datetime.strptime(x, "%Y-%m-%d") + timedelta(days=1)
+            # ).strftime("%Y-%m-%d")
+            lambda x: (x + timedelta(days=1))
         )
         return pd.merge(
             up_data,
@@ -67,7 +70,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
             how="left",
             on=merge_on
         ).groupby([groupby]).agg(
-            up_5_next_open_pct_chg=(cal_col, cal_fun)
+            cal_col=(cal_col, cal_fun)
         ).reset_index()
 
     up_5_data = data[data['pct_chg'] >= 0.05][["trade_date", "ts_code"]]
@@ -78,7 +81,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"open_pct_chg": "up_5_next_open_pct_chg"})
+    ).rename(columns={"cal_col": "up_5_next_open_pct_chg"})
 
     up_5_next_high_pct_chg = _cal_pct_chg(
         data[["trade_date", "ts_code", "high_pct_chg"]],
@@ -87,7 +90,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"high_pct_chg": "up_5_next_high_pct_chg"})
+    ).rename(columns={"cal_col": "up_5_next_high_pct_chg"})
 
     up_5_next_close_pct_chg = _cal_pct_chg(
         data[["trade_date", "ts_code", "pct_chg"]],
@@ -96,7 +99,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"pct_chg": "up_5_next_close_pct_chg"})
+    ).rename(columns={"cal_col": "up_5_next_close_pct_chg"})
 
     up_limit_data = data[data['close'] == data['up_limit']][["trade_date", "ts_code"]]
     up_limit_next_open_pct_chg = _cal_pct_chg(
@@ -106,7 +109,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"open_pct_chg": "up_limit_next_open_pct_chg"})
+    ).rename(columns={"cal_col": "up_limit_next_open_pct_chg"})
 
     up_limit_next_high_pct_chg = _cal_pct_chg(
         data[["trade_date", "ts_code", "high_pct_chg"]],
@@ -115,7 +118,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"high_pct_chg": "up_limit_next_high_pct_chg"})
+    ).rename(columns={"cal_col": "up_limit_next_high_pct_chg"})
 
     up_limit_next_close_pct_chg = _cal_pct_chg(
         data[["trade_date", "ts_code", "pct_chg"]],
@@ -124,7 +127,7 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         "mean",
         "ts_code",
         ["trade_date", "ts_code"]
-    ).rename(columns={"pct_chg": "up_limit_next_close_pct_chg"})
+    ).rename(columns={"cal_col": "up_limit_next_close_pct_chg"})
 
     trade_days = (data.groupby('ts_code')['pct_chg'].count().
                   reset_index().rename(columns={"pct_chg": "trade_days"}))
@@ -132,23 +135,23 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
     dm_stock_performance_data = up_days.merge(
         down_days,
         how="left",
-        on=["ts_code"]
+        on=["ts_code", "name", "industry"]
     ).merge(
         up_5_days,
         how="left",
-        on=["ts_code"]
+        on=["ts_code", "name", "industry"]
     ).merge(
         down_5_days,
         how="left",
-        on=["ts_code"]
+        on=["ts_code", "name", "industry"]
     ).merge(
         up_limit_days,
         how="left",
-        on=["ts_code"]
+        on=["ts_code", "name", "industry"]
     ).merge(
         down_limit_days,
         how="left",
-        on=["ts_code"]
+        on=["ts_code", "name", "industry"]
     ).merge(
         up_5_next_open_pct_chg,
         how="left",
@@ -179,9 +182,10 @@ def dm_stock_performance_daily(trade_date: str, interval: int = 180) -> None:
         on=["ts_code"]
     )
     dm_stock_performance_data["trade_date"] = trade_date
+    dm_stock_performance_data.fillna(0, inplace=True)
 
     data_load.append("dm_stock_performance", dm_stock_performance_data)
-    data_load.close()
+
 
 
 

@@ -4,9 +4,10 @@ from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
 
-def dm_up_limit_statistics_daily(trade_date: str) -> None:
+def dm_up_limit_statistics_daily(trade_date: str,
+                                 connect: object = DataLoad()) -> None:
 
-    data_load = DataLoad()
+    data_load = connect
     pre_trade_date =((datetime.strptime(trade_date, "%Y-%m-%d")
                            - timedelta(days=1))
                      .strftime("%Y-%m-%d"))
@@ -58,7 +59,6 @@ def dm_up_limit_statistics_daily(trade_date: str) -> None:
                                                          & (data['trade_code'] == trade_date)
                                                          & (data['open'] < 0)]
 
-    dm_up_limit_statistics_data = DataFrame(dm_up_limit_statistics_data, index=[0])
+    dm_up_limit_statistics_data = DataFrame(dm_up_limit_statistics_data, index=[1])
 
     data_load.append('dm_up_limit_statistics', dm_up_limit_statistics_data)
-    data_load.close()

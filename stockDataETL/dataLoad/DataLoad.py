@@ -29,8 +29,10 @@ class DataLoad:
 
         try:
             data.to_sql(table_name, con=self.stock_connect, if_exists='append', index=False)
+            self.stock_connect.commit()
             logging.info(f"Append data to {table_name}, successfully append {len(data)} rows")
         except Exception as e:
+            self.stock_connect.rollback()
             logging.error(f"Append data to {table_name} failed", exc_info=True)
 
     def search(self, sql: str, parameters: dict = None):
@@ -46,11 +48,12 @@ class DataLoad:
     def execute(self, sql: str, sql_name: str, parameters: dict = None):
 
         try:
-            with self.stock_connect.begin():
-                result = self.stock_connect.execute(text(sql), parameters)
+            result = self.stock_connect.execute(text(sql), parameters)
+            self.stock_connect.commit()
             logging.info("Execute '" + sql_name + "' successfully")
             return result
         except Exception as e:
+            self.stock_connect.rollback()
             logging.error("Execute '" + sql + "' failed", exc_info=True)
             return None
 

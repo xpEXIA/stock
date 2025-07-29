@@ -1,15 +1,4 @@
-# SET @today = date_format(current_date(),'%Y-%m-%d');
-# SET @today = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
-SET @today = :trade_date;
-SET @last_day = (
-            select
-                pretrade_date
-            from ods_trade_cal
-            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
-);
-SET @last_day = str_to_date(@last_day,'%Y%m%d');
-# SET @last_day = date_format(date_sub(current_date(),interval 1 day ),'%Y-%m-%d');
-# SET @last_day = date_format(date_sub(current_date(),interval 2 day ),'%Y-%m-%d');
+
 Insert Into dw_daily_trends (ts_code, trade_date,open, high, low, close, pre_close, pct_chg,
                             open_pct_chg, high_pct_chg, low_pct_chg, vol, amout, name, industry,market,
                             turnover_rate_f, volume_ratio, pe, total_mv, circ_mv, up_limit, down_limit, pre_high,
@@ -79,7 +68,13 @@ from ods_daily left join ods_stock_basic
                 ods_daily.high as high,
                 ods_daily.ts_code as ts_code
             from ods_daily
-            where trade_date = @yesterday
+            where trade_date = (
+            select
+                str_to_date(pretrade_date,'%Y%m%d')
+            from ods_trade_cal
+            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
+            limit 1
+            )
     ) pre_daily
         on ods_daily.ts_code = pre_daily.ts_code
     left join ods_stk_limit
@@ -92,7 +87,7 @@ from ods_daily left join ods_stock_basic
                 (sum(ods_moneyflow.buy_lg_amount + ods_moneyflow.buy_elg_amount)
             - sum(ods_moneyflow.sell_lg_amount + ods_moneyflow.sell_elg_amount)) as net_d5_amount
             from ods_moneyflow
-            where trade_date <= @today and trade_date >= date_sub(@today, interval 5 day)
+            where trade_date <= ':trade_date' and trade_date >= date_sub(':trade_date', interval 5 day)
             group by ods_moneyflow.ts_code
     ) net_d5
         on ods_daily.ts_code = net_d5.ts_code
@@ -101,8 +96,14 @@ from ods_daily left join ods_stock_basic
                 dw_daily_trends.ts_code as ts_code,
                 dw_daily_trends.ctu_up_days as ctu_up_days
             from dw_daily_trends
-            where trade_date = @yesterday
+            where trade_date = (
+            select
+                str_to_date(pretrade_date,'%Y%m%d')
+            from ods_trade_cal
+            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
+            limit 1
+            )
     ) pre_daily_trends
         on ods_daily.ts_code = pre_daily_trends.ts_code
-where ods_daily.trade_date = @today
+where ods_daily.trade_date = ':trade_date'
 
