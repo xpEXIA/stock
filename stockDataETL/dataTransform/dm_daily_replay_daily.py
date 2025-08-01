@@ -3,18 +3,19 @@ from pandas import DataFrame
 from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL.dataTransform.commonUtils.get_pretrade_date import get_pretrade_date
+from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import trade_date_complete_check
 
 
 def dm_daily_replay_daily(trade_date: str,
                           connect: object = DataLoad()) -> str:
 
-    load_data = connect
+    data_load = connect
     logger.info(f"开始处理日复盘数据, 交易日:{trade_date}, 表dm_daily_replay")
     logger.info("获取交易日历数据")
     pretrade_date = get_pretrade_date(trade_date)
 
     logger.info("获取复盘计算数据")
-    trade_date_data =  load_data.search(
+    trade_date_data =  data_load.search(
         """
         select 
             pre_daily_trends.ts_code as ts_code,
@@ -64,7 +65,8 @@ def dm_daily_replay_daily(trade_date: str,
     dm_daily_replay_data["last_up_5_open_up_5"] = last_up_5[trade_date_data["open"] >= 0.05]["ts_code"].count()
     dm_daily_replay_data["last_up_5_close_up_5"] = last_up_5[trade_date_data["close"] >= 0.05]["ts_code"].count()
     dm_daily_replay_data = DataFrame(dm_daily_replay_data, index=[1])
-    load_data.append("dm_daily_replay",dm_daily_replay_data)
+    data_load.append("dm_daily_replay",dm_daily_replay_data)
+
 
 
 

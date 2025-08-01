@@ -20,3 +20,4 @@ def dw_daily_trends_daily(trade_date: str,
         "dw_daily_trends_daily")
     logger.info(f"dw_daily_trends_daily执行成功, 交易日:{trade_date}")
 
+

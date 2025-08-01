@@ -4,6 +4,8 @@ import pandas as pd
 from pandas import DataFrame
 from stockDataETL import logger
 from stockDataETL.dataLoad.DataLoad import DataLoad
+from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import trade_date_complete_check
+
 
 def dm_stock_performance_daily(trade_date: str,
                                interval: int = 180,
@@ -183,8 +185,28 @@ def dm_stock_performance_daily(trade_date: str,
     )
     dm_stock_performance_data["trade_date"] = trade_date
     dm_stock_performance_data.fillna(0, inplace=True)
+    dm_stock_performance_data[
+        [
+            "up_5_next_open_pct_chg",
+            "up_5_next_high_pct_chg",
+            "up_5_next_close_pct_chg",
+            "up_limit_next_open_pct_chg",
+            "up_limit_next_high_pct_chg",
+            "up_limit_next_close_pct_chg",
+        ]
+    ] = dm_stock_performance_data[
+        [
+            "up_5_next_open_pct_chg",
+            "up_5_next_high_pct_chg",
+            "up_5_next_close_pct_chg",
+            "up_limit_next_open_pct_chg",
+            "up_limit_next_high_pct_chg",
+            "up_limit_next_close_pct_chg",
+        ]
+    ].apply(lambda x: round(x, 4))
 
     data_load.append("dm_stock_performance", dm_stock_performance_data)
+
 
 
 

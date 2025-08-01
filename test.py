@@ -7,12 +7,13 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 
 from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
 from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
+from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
 from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
 
 
 def test(request):
 
-    result = dm_stock_performance_daily(trade_date="2025-07-17")
+    result = dm_up_limit_statistics_daily(trade_date="2025-07-17")
     return JsonResponse(
         {
             "status": "success",
