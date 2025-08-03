@@ -31,7 +31,7 @@ def initDatabase(request):
 
     logger.info("开始初始化股票基础数据, 表ods_stock_basic")
     get_stock_basic = get_TS_data.getStockBasic()
-    if get_stock_basic.empty:
+    if get_stock_basic is None:
         logger.error("ods_stock_basic数据库数据导入失败, 数据为空")
         failure_list.append("ods_stock_basic")
     data_load.append("ods_stock_basic", get_stock_basic)
@@ -44,14 +44,14 @@ def initDatabase(request):
     trade_date_list = get_trade_cal[(get_trade_cal["is_open"] == 1) &
                                     (get_trade_cal["cal_date"] <= datetime.today().strftime("%Y%m%d"))]["cal_date"].tolist()
 
-    if get_trade_cal.empty:
+    if get_trade_cal is None:
         logger.error("ods_trade_cal数据库数据导入失败, 数据为空")
         failure_list.append("ods_trade_cal")
     data_load.append("ods_trade_cal", get_trade_cal)
 
     logger.info("开始初始化股票公司数据, 表ods_stock_company")
     get_stock_company = get_TS_data.getStockCompany()
-    if get_stock_company.empty:
+    if get_stock_company is None:
         logger.error("ods_stock_company数据库数据导入失败, 数据为空")
         failure_list.append("ods_stock_company")
     data_load.append("ods_stock_company", get_stock_company)
@@ -61,7 +61,7 @@ def initDatabase(request):
     logger.info("开始初始化日线行情数据, 表ods_daily")
     for trade_date in trade_date_list:
         get_daily = get_TS_data.getDaily(trade_date=trade_date)
-        if get_daily.empty:
+        if get_daily is None:
             logger.error(f"ods_daily数据库数据导入失败, 数据为空, 交易日: {trade_date}")
             failure_list.append("ods_daily")
             continue
@@ -71,7 +71,7 @@ def initDatabase(request):
     logger.info("开始初始化每日指标数据, 表ods_daily_basic")
     for trade_date in trade_date_list:
         get_daily_basic = get_TS_data.getDailyBasic(trade_date=trade_date)
-        if get_daily_basic.empty:
+        if get_daily_basic is None:
             logger.error(f"ods_daily_basic数据库数据导入失败, 数据为空, 交易日: {trade_date}")
             failure_list.append("ods_daily_basic")
             continue
@@ -82,7 +82,7 @@ def initDatabase(request):
     market = ["SZSE", "SSE"]
     for market_ in market:
         get_index_basic = get_TS_data.getIndexBasic(market=market_)
-        if get_index_basic.empty:
+        if get_index_basic is None:
             logger.error(f"ods_index_basic数据库数据导入失败, 数据为空, 交易所: {market_}")
             failure_list.append("ods_index_basic")
             continue
@@ -95,7 +95,7 @@ def initDatabase(request):
         get_index_daily = get_TS_data.getIndexDaily(ts_code=index_code_,
                                                     start_date=start_date,
                                                     end_date=datetime.today().strftime("%Y%m%d"))
-        if get_index_daily.empty:
+        if get_index_daily is None:
             logger.error(f"ods_index_daily数据库数据导入失败, 数据为空, 指数代码: {index_code_}")
             failure_list.append("ods_index_daily")
             continue
@@ -105,7 +105,7 @@ def initDatabase(request):
     logger.info("开始初始化资金流向数据, 表ods_moneyflow")
     for trade_date in trade_date_list:
         get_moneyflow = get_TS_data.getMoneyFlow(trade_date=trade_date)
-        if get_moneyflow.empty:
+        if get_moneyflow is None:
             logger.error(f"ods_moneyflow数据库数据导入失败, 数据为空, 交易日: {trade_date}")
             failure_list.append("ods_moneyflow")
             continue
@@ -115,7 +115,7 @@ def initDatabase(request):
     logger.info("开始初始化股票涨跌幅数据, 表ods_stk_limit")
     for trade_date in trade_date_list:
         get_stk_limit = get_TS_data.getStkLimit(trade_date=trade_date)
-        if get_stk_limit.empty:
+        if get_stk_limit is None:
             logger.error(f"ods_stk_limit数据库数据导入失败, 数据为空, 交易日: {trade_date}")
             failure_list.append("ods_stk_limit")
             continue

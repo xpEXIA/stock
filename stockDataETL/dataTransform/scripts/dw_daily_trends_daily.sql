@@ -31,7 +31,7 @@ select
     ods_daily_basic.circ_mv as cric_mv,
     ods_stk_limit.up_limit as up_limit,
     ods_stk_limit.down_limit as down_limit,
-    pre_daily.high as pre_high,
+    pre_daily.pre_high as pre_high,
     ods_moneyflow.buy_sm_amount as buy_sm_amount,
     ods_moneyflow.sell_sm_amount as sell_sm_amount,
     ods_moneyflow.buy_md_amount as buy_md_amount,
@@ -65,14 +65,14 @@ from ods_daily left join ods_stock_basic
         on ods_daily.ts_code = ods_daily_basic.ts_code and ods_daily.trade_date = ods_daily_basic.trade_date
     left join (
             select
-                ods_daily.high as high,
+                ods_daily.high as pre_high,
                 ods_daily.ts_code as ts_code
             from ods_daily
             where trade_date = (
             select
                 str_to_date(pretrade_date,'%Y%m%d')
             from ods_trade_cal
-            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
+            where cal_date = DATE_FORMAT(':trade_date', '%Y%m%d')
             limit 1
             )
     ) pre_daily
@@ -100,7 +100,7 @@ from ods_daily left join ods_stock_basic
             select
                 str_to_date(pretrade_date,'%Y%m%d')
             from ods_trade_cal
-            where cal_date = DATE_FORMAT(@today, '%Y%m%d')
+            where cal_date = DATE_FORMAT(':trade_date', '%Y%m%d')
             limit 1
             )
     ) pre_daily_trends
