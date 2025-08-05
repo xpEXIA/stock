@@ -12,7 +12,7 @@ class GetTSData:
 
         self.ts_api = ts_api
 
-    def getStockBasic(self, ts_code: str = "", list_status: str = "L", exchange: str = "SSE,SZSE") -> DataFrame:
+    def getStockBasic(self, ts_code: str = "", list_status: str = "L", exchange: str = "") -> DataFrame:
 
         # 获取股票基础信息
         try:

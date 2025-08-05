@@ -13,7 +13,7 @@ from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_dai
 
 def test(request):
 
-    result = dm_up_limit_statistics_daily(trade_date="2025-07-17")
+    result = dm_daily_replay_daily(trade_date="2025-07-29")
     return JsonResponse(
         {
             "status": "success",

@@ -9,7 +9,7 @@ from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_
 from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
 
 
-def dailyTask(request, date):
+async def dailyTask(request, date: str):
 
     get_TS_data = GetTSData()
     data_load = DataLoad()
