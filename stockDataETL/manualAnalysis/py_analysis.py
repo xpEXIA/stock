@@ -1,10 +1,8 @@
 import sys
-from datetime import datetime
-
 from sqlalchemy import create_engine
 from stockDataETL.settings import DATABASES
-from pandas import DataFrame as df
 import pandas as pd
+from sqlalchemy import text
 
 engine = create_engine(
     "mysql+pymysql://{user}:{password}@{host}:{port}/{db}?charset=utf8".format(
@@ -15,6 +13,12 @@ engine = create_engine(
         db=DATABASES['default']['NAME']
     )
 )
+
+conn = engine.connect()
+table_list = ['dw_daily_trends',
+                  "dm_daily_replay", "dm_stock_performance", "dm_up_limit_statistics"]
+for table_name in table_list:
+    conn.execute(text(f"TRUNCATE TABLE {table_name};"))
 
 data = pd.read_sql("""select 
                       * 

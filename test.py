@@ -4,6 +4,7 @@ import pandas as pd
 from django.http import JsonResponse
 from stockDataETL import engine
 from stockDataETL.dataExtract.GetTSData import GetTSData
+from stockDataETL.dataLoad.DataLoad import DataLoad
 
 from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
 from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
@@ -13,30 +14,26 @@ from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_dai
 
 def test(request):
 
-    result = dm_daily_replay_daily(trade_date="2025-07-29")
+    data_load = DataLoad()
+    data_load.truncate('dm_daily_replay')
+
+    trade_date_list = pd.read_sql("""select 
+                          cal_date 
+                      from ods_trade_cal
+                      where ods_trade_cal.cal_date <= '2025-08-04'
+                      and is_open = 1
+                   """, engine)
+    trade_date_list = trade_date_list["cal_date"].tolist()
+    trade_date_list = list(map(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"), trade_date_list))
+    for trade_date in trade_date_list[1:]:
+        dm_daily_replay_daily(trade_date=trade_date, connect=data_load)
+    data_load.close()
     return JsonResponse(
         {
             "status": "success",
-            "message": result
+            "message": 'fucking data'
         }
     )
 
 
-get_ts_data = GetTSData()
-stock_list = get_ts_data.getStockBasic()
-daily = get_ts_data.getDaily(start_date="20250709", end_date="20250709")
-daily2 = get_ts_data.getDaily(start_date="20250710", end_date="20250710")
-daily3 = get_ts_data.getDaily(start_date="20250708", end_date="20250708")
-a = pd.merge(daily, daily2, on=['ts_code'], how="left")
-b = a[(a["change_x"] > 0) & (a["change_y"] > 0)]
-c = pd.merge(b, daily3, on=['ts_code'], how="left")
-c = c[c['change'] > 0]
-d = a[(a["change_x"] < 0) & (a["change_y"] > 0)]
-stock_list.to_sql("stock_basic", con=engine, index=False, if_exists="replace")
-stock_list=pd.DataFrame()
 
-today = datetime.today()
-a = today.strftime("%Y%m%d")
-b = datetime.strptime(a, "%Y%m%d")
-
-index_basic = get_ts_data.getIndexBasic(ts_code="000001.SH",market="SZSE")

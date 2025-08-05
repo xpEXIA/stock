@@ -58,14 +58,14 @@ def dm_daily_replay_daily(trade_date: str,
     dm_daily_replay_data["last_up_limit"] = up_limit_data["ts_code"].count()
     dm_daily_replay_data["last_up_limit_open_up"] = up_limit_data[trade_date_data["open_pct_chg"] > 0]["ts_code"].count()
     dm_daily_replay_data["last_up_limit_close_up"] = up_limit_data[trade_date_data["close_pct_chg"] > 0]["ts_code"].count()
-    dm_daily_replay_data["last_up_limit_open_up_5"] = up_limit_data[trade_date_data["open_pct_chg"] >= 0.05]["ts_code"].count()
-    dm_daily_replay_data["last_up_limit_close_up_5"] = up_limit_data[trade_date_data["close_pct_chg"] >= 0.05]["ts_code"].count()
-    last_up_5 = trade_date_data[trade_date_data["pre_pct_chg"] >= 0.05]
+    dm_daily_replay_data["last_up_limit_open_up_5"] = up_limit_data[trade_date_data["open_pct_chg"] >= 5]["ts_code"].count()
+    dm_daily_replay_data["last_up_limit_close_up_5"] = up_limit_data[trade_date_data["close_pct_chg"] >= 5]["ts_code"].count()
+    last_up_5 = trade_date_data[trade_date_data["pre_pct_chg"] >= 5]
     dm_daily_replay_data["last_up_5"] =last_up_5["ts_code"].count()
     dm_daily_replay_data["last_up_5_open_up"] = last_up_5[trade_date_data["open_pct_chg"] > 0]["ts_code"].count()
     dm_daily_replay_data["last_up_5_close_up"] = last_up_5[trade_date_data["close_pct_chg"] > 0]["ts_code"].count()
-    dm_daily_replay_data["last_up_5_open_up_5"] = last_up_5[trade_date_data["open_pct_chg"] >= 0.05]["ts_code"].count()
-    dm_daily_replay_data["last_up_5_close_up_5"] = last_up_5[trade_date_data["close_pct_chg"] >= 0.05]["ts_code"].count()
+    dm_daily_replay_data["last_up_5_open_up_5"] = last_up_5[trade_date_data["open_pct_chg"] >= 5]["ts_code"].count()
+    dm_daily_replay_data["last_up_5_close_up_5"] = last_up_5[trade_date_data["close_pct_chg"] >= 5]["ts_code"].count()
     dm_daily_replay_data = DataFrame(dm_daily_replay_data, index=[1])
     data_load.append("dm_daily_replay",dm_daily_replay_data)
 
