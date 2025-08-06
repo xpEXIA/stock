@@ -6,7 +6,7 @@ Insert Into dw_daily_trends (ts_code, trade_date,open, high, low, close, pre_clo
                              sell_lg_amount, buy_elg_amount,sell_elg_amount, net_mf_amount, buy_elg_net_amount,
                              buy_elg_net_amount_rate, buy_lg_net_amount, buy_lg_net_amount_rate, buy_md_net_amount,
                              buy_md_net_amount_rate, buy_sm_net_amount, buy_sm_net_amount_rate,
-                             net_d5_amount, ctu_up_days)
+                             net_d5_amount, ctu_up_days, ctu_down_days)
 select
     ods_daily.ts_code as ts_code,
     ods_daily.trade_date as trade_date,
@@ -58,7 +58,16 @@ select
             end
         ) + 1
         else 0
-    end as ctu_up_days
+    end as ctu_up_days,
+    case
+        when ods_daily.pct_chg <= 0 then (
+            case
+                when pre_daily_trends.ctu_down_days is Null then 0
+                else pre_daily_trends.ctu_down_days
+            end
+        ) + 1
+        else 0
+    end as ctu_down_days
 from ods_daily left join ods_stock_basic
         on ods_daily.ts_code = ods_stock_basic.ts_code
     left join ods_daily_basic
@@ -94,7 +103,8 @@ from ods_daily left join ods_stock_basic
     left join (
             select
                 dw_daily_trends.ts_code as ts_code,
-                dw_daily_trends.ctu_up_days as ctu_up_days
+                dw_daily_trends.ctu_up_days as ctu_up_days,
+                dw_daily_trends.ctu_down_days as ctu_down_days
             from dw_daily_trends
             where trade_date = (
             select
