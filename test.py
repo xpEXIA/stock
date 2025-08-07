@@ -15,20 +15,19 @@ from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_dai
 def test(request):
 
     data_load = DataLoad()
-    data_load.truncate('dw_daily_trends')
+    data_load.truncate('dm_up_limit_statistics')
 
-    trade_date_list = pd.read_sql("""select 
-                          cal_date 
+    trade_date_list = pd.read_sql("""select
+                          cal_date
                       from ods_trade_cal
-                      where ods_trade_cal.cal_date <= '20250805'
+                      where ods_trade_cal.cal_date <= '20250807'
                       and is_open = 1
                    """, engine)
     trade_date_list = trade_date_list["cal_date"].tolist()
     trade_date_list = list(map(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"), trade_date_list))
     trade_date_list.reverse()
-    logger.info("开始初始化股票日趋势数据, 表dw_daily_trends")
     for trade_date in trade_date_list[1:]:
-        dw_daily_trends_daily(trade_date=trade_date, connect=data_load)
+        dm_up_limit_statistics_daily(trade_date=trade_date, connect=data_load)
     data_load.close()
     return JsonResponse(
         {

@@ -44,7 +44,7 @@ def dm_daily_replay_daily(trade_date: str,
         """,
         {
             "trade_date": trade_date,
-            "pretrade_date": datetime.strptime(pretrade_date, "%Y%m%d").strftime("%Y-%m-%d")
+            "pretrade_date": pretrade_date
         }
     )
     trade_date_data = DataFrame(trade_date_data, columns=[

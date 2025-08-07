@@ -17,4 +17,4 @@ def get_pretrade_date(trade_date: str) -> str:
         }
     )[0][0]
     data_load.close()
-    return pretrade_date
+    return datetime.strptime(pretrade_date, "%Y%m%d").strftime("%Y-%m-%d")
