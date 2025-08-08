@@ -45,10 +45,10 @@ def dm_stock_performance_daily(trade_date: str,
     down_days = data[data['pct_chg'] <= 0].groupby(["ts_code", "name", "industry"]).agg(
         down_days=("pct_chg", "count")
     ).reset_index().rename(columns={"pct_chg": "down_days"})
-    up_5_days = data[data['pct_chg'] >= 0.05].groupby(["ts_code", "name", "industry"]).agg(
+    up_5_days = data[data['pct_chg'] >= 5].groupby(["ts_code", "name", "industry"]).agg(
         up_5_days=("pct_chg", "count")
     ).reset_index().rename(columns={"pct_chg": "up_5_days"})
-    down_5_days = data[data['pct_chg'] <= -0.05].groupby(["ts_code", "name", "industry"]).agg(
+    down_5_days = data[data['pct_chg'] <= -5].groupby(["ts_code", "name", "industry"]).agg(
         down_5_days=("pct_chg", "count")
     ).reset_index().rename(columns={"pct_chg": "down_5_days"})
     up_limit_days = data[data['close'] == data['up_limit']].groupby(["ts_code", "name", "industry"]).agg(
@@ -75,7 +75,7 @@ def dm_stock_performance_daily(trade_date: str,
             cal_col=(cal_col, cal_fun)
         ).reset_index()
 
-    up_5_data = data[data['pct_chg'] >= 0.05][["trade_date", "ts_code"]]
+    up_5_data = data[data['pct_chg'] >= 5][["trade_date", "ts_code"]]
     up_5_next_open_pct_chg = _cal_pct_chg(
         data[["trade_date", "ts_code", "open_pct_chg"]],
         up_5_data,

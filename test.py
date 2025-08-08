@@ -15,7 +15,7 @@ from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_dai
 def test(request):
 
     data_load = DataLoad()
-    data_load.truncate('dm_up_limit_statistics')
+    data_load.truncate('dm_stock_performance')
 
     trade_date_list = pd.read_sql("""select
                           cal_date
@@ -26,8 +26,8 @@ def test(request):
     trade_date_list = trade_date_list["cal_date"].tolist()
     trade_date_list = list(map(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"), trade_date_list))
     trade_date_list.reverse()
-    for trade_date in trade_date_list[1:]:
-        dm_up_limit_statistics_daily(trade_date=trade_date, connect=data_load)
+    for trade_date in trade_date_list[60:]:
+        dm_stock_performance_daily(trade_date=trade_date, connect=data_load)
     data_load.close()
     return JsonResponse(
         {
