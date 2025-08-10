@@ -33,8 +33,13 @@ engine = create_engine(
         password=DATABASES['default']['PASSWORD'],
         host=DATABASES['default']['HOST'],
         port=DATABASES['default']['PORT'],
-        db=DATABASES['default']['NAME']
-    )
+        db=DATABASES['default']['NAME'],
+    ),
+    pool_size=DATABASES['default']['pool_size'],  # 增加主池大小
+    max_overflow=DATABASES['default']['max_overflow'],  # 增加溢出池大小
+    pool_timeout=DATABASES['default']['pool_timeout'],  # 增加超时时间
+    pool_recycle=DATABASES['default']['pool_recycle'],  # 连接回收时间
+    pool_pre_ping=DATABASES['default']['pool_pre_ping']  # 检查连接有效性
 )
 
 # pymysql 数据库连接

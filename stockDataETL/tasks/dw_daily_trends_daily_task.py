@@ -1,3 +1,4 @@
+from stockDataETL import logger
 from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
 from stockDataETL.dataLoad.DataLoad import DataLoad
 

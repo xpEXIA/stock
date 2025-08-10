@@ -127,8 +127,22 @@ DATABASES = {
         'PASSWORD': 'Xp19881106',
         'HOST': 'rm-bp1yz9j4qclf59247eo.mysql.rds.aliyuncs.com',
         'PORT': 3306,
+        'pool_size': 20,  # 增加主池大小
+        'max_overflow': 30,  # 增加溢出池大小
+        'pool_timeout': 60,  # 增加超时时间
+        'pool_recycle': 3600,  # 连接回收时间
+        'pool_pre_ping': True  # 检查连接有效性
     }
 }
+
+# 增加连接池大小
+SQLALCHEMY_ENGINE_OPTIONS = {
+    'pool_size': 20,           # 增加主池大小
+    'max_overflow': 30,        # 增加溢出池大小
+    'pool_timeout': 60,        # 增加超时时间
+    'pool_recycle': 3600,      # 连接回收时间
+}
+
 
 
 # Password validation

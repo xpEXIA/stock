@@ -1,3 +1,4 @@
+from stockDataETL import logger
 from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
@@ -7,7 +8,7 @@ def dm_stock_performance_daily_task(trade_date: str,
     
     logger.info("开始计算日复盘数据, dm_stock_performance")
     try:
-        dm_stock_performance_daily(trade_date, connect)
+        dm_stock_performance_daily(trade_date=trade_date, connect=connect)
         connect.close()
     except Exception as e:
         connect.close()

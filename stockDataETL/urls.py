@@ -16,13 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
 import test
-from stockDataETL.run import InitDatabase, DailyTask
+from stockDataETL.run import InitDatabase, DailyTask, AsyncDailyTask
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('InitDatabase/', InitDatabase.initDatabase, name='InitDatabase'),
     path('DailyTask/<date>', DailyTask.dailyTask, name='DailyTask'),
+    path('AsyncDailyTask/<date>', AsyncDailyTask.asyncDailyTask, name='AsyncDailyTask'),
     path('test/', test.test, name='test'),
 ]

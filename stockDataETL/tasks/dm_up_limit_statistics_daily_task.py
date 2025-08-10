@@ -1,3 +1,4 @@
+from stockDataETL import logger
 from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
 from stockDataETL.dataLoad.DataLoad import DataLoad
 

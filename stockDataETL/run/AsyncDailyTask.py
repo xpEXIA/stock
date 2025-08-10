@@ -1,4 +1,6 @@
 from datetime import datetime
+from functools import partial
+
 from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
@@ -15,11 +17,12 @@ from stockDataETL.tasks.dm_stock_performance_daily_task import dm_stock_performa
 from stockDataETL.tasks.dm_daily_replay_daily_task import dm_daily_replay_daily_task
 from stockDataETL.tasks.dm_up_limit_statistics_daily_task import dm_up_limit_statistics_daily_task
 
-async def dailyTask(request, date: str = None):
+async def asyncDailyTask(request, date: str = None):
     """异步处理每日任务"""
     get_TS_data = GetTSData()
     data_load = DataLoad()
     failure_list = []
+    loop = get_event_loop()
     logger.info("开始获取ods数据")
 
     if date:
@@ -42,17 +45,17 @@ async def dailyTask(request, date: str = None):
     else:        
         # 异步执行所有通过get_TS_data请求接口获取数据的代码
         ods_tasks = [
-            get_event_loop.run_in_executor(None, ods_stock_basic_task, data_load),
-            get_event_loop.run_in_executor(None, ods_daily_task, {'trade_date':cal_date}),
-            get_event_loop.run_in_executor(None, ods_daily_basic_task, {'trade_date':cal_date}),
-            get_event_loop.run_in_executor(None, ods_stk_limit_task, {'trade_date':cal_date}),
-            get_event_loop.run_in_executor(None, ods_moneyflow_task, {'trade_date':cal_date}),
-            get_event_loop.run_in_executor(None, ods_index_daily_task, {'trade_date':cal_date}),
+            loop.run_in_executor(None, ods_stock_basic_task, data_load),
+            loop.run_in_executor(None, partial(ods_daily_task, trade_date=cal_date)),
+            loop.run_in_executor(None, partial(ods_daily_basic_task, trade_date=cal_date)),
+            loop.run_in_executor(None, partial(ods_stk_limit_task, trade_date=cal_date)),
+            loop.run_in_executor(None, partial(ods_moneyflow_task, trade_date=cal_date)),
+            loop.run_in_executor(None, partial(ods_index_daily_task, trade_date=cal_date)),
         ]
-        
+
         # 等待所有异步任务完成
         results = await gather(*ods_tasks, return_exceptions=True)
-        
+
         # 处理结果
         for result in results:
             if result is not None:
@@ -68,13 +71,13 @@ async def dailyTask(request, date: str = None):
         
         # 异步处理dm层数据
         dm_tasks = [
-            get_event_loop.run_in_executor(None, dm_daily_replay_daily_task, {'trade_date':trade_date}),
-            get_event_loop.run_in_executor(None, dm_stock_performance_daily_task, {'trade_date':trade_date}),
-            get_event_loop.run_in_executor(None, dm_up_limit_statistics_daily_task, {'trade_date':trade_date}),
+            loop.run_in_executor(None, partial(dm_daily_replay_daily_task, trade_date=trade_date)),
+            loop.run_in_executor(None, partial(dm_stock_performance_daily_task, trade_date=trade_date)),
+            loop.run_in_executor(None, partial(dm_up_limit_statistics_daily_task, trade_date=trade_date)),
         ]
         
         # 等待剩余的异步任务完成
-        dm_results = await asyncio.gather(*dm_tasks, return_exceptions=True)
+        dm_results = await gather(*dm_tasks, return_exceptions=True)
         
         # 处理剩余操作的结果
         for dm_result in dm_results:

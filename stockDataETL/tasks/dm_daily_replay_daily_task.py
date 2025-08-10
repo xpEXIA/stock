@@ -1,3 +1,4 @@
+from stockDataETL import logger
 from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
 from stockDataETL.dataLoad.DataLoad import DataLoad
 

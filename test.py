@@ -10,25 +10,11 @@ from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_dai
 from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
 from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
 from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
+from stockDataETL.tasks.dm_stock_performance_daily_task import dm_stock_performance_daily_task
 
 
 def test(request):
-
-    data_load = DataLoad()
-    data_load.truncate('dm_stock_performance')
-
-    trade_date_list = pd.read_sql("""select
-                          cal_date
-                      from ods_trade_cal
-                      where ods_trade_cal.cal_date <= '20250807'
-                      and is_open = 1
-                   """, engine)
-    trade_date_list = trade_date_list["cal_date"].tolist()
-    trade_date_list = list(map(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"), trade_date_list))
-    trade_date_list.reverse()
-    for trade_date in trade_date_list[60:]:
-        dm_stock_performance_daily(trade_date=trade_date, connect=data_load)
-    data_load.close()
+    dm_stock_performance_daily_task("20250808")
     return JsonResponse(
         {
             "status": "success",
