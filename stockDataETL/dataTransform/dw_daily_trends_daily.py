@@ -5,7 +5,8 @@ from stockDataETL.dataLoad.DataLoad import DataLoad
 
 def dw_daily_trends_daily(trade_date: str,
                           file_path: str = "./stockDataETL/dataTransform/scripts/dw_daily_trends_daily.sql",
-                          connect: object = DataLoad()):
+                          connect: object = DataLoad()) -> None:
+
 
     data_load = connect
     logger.info(f"开始处理股票日趋势数据, 交易日:{trade_date}, 表dw_daily_trends")

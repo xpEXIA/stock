@@ -7,7 +7,7 @@ from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import tra
 
 
 def dm_daily_replay_daily(trade_date: str,
-                          connect: object = DataLoad()) -> str:
+                          connect: object = DataLoad()) -> None:
 
     data_load = connect
     logger.info(f"开始处理日复盘数据, 交易日:{trade_date}, 表dm_daily_replay")
