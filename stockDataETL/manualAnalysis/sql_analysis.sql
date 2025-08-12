@@ -43,23 +43,3 @@ from (
 
 
 
-
-
-
-
-
-
-select
-    count(DISTINCT trade_date)
-from stock.dw_daily_trends
-where trade_date >= '2025-04-08';
-
-
-
-
-
-
-select
-    count(DISTINCT trade_date)
-from stock.dw_daily_trends
-where trade_date >= '2025-04-08';

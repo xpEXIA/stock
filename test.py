@@ -13,12 +13,12 @@ from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_dai
 from stockDataETL.tasks.dm_stock_performance_daily_task import dm_stock_performance_daily_task
 
 
-def test(request):
-    dm_stock_performance_daily_task("20250808")
+def test(request, date="fuck django"):
+    # dm_stock_performance_daily_task("20250808")
     return JsonResponse(
         {
             "status": "success",
-            "message": 'fucking data'
+            "message": date
         }
     )
 
