@@ -1,9 +1,13 @@
 from datetime import datetime
 import sys
+import tushare as ts
 from sqlalchemy import create_engine
 from stockDataETL.settings import DATABASES
 import pandas as pd
+from pandas import DataFrame
 from sqlalchemy import text
+
+ts_api = ts.pro_api()
 
 engine = create_engine(
     "mysql+pymysql://{user}:{password}@{host}:{port}/{db}?charset=utf8".format(
@@ -41,3 +45,13 @@ vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
 vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
 vol_data.sort_values(by=['close_pct','vol_pct'],ascending=False,inplace=True)
 asd = vol_data[(vol_data['vol_pct'] > 3) & (vol_data['market'].isin(['主板','创业板']))]
+
+final_data_18 = DataFrame()
+for i in ['20180116','20180117','20180118','20180119','20180122','20180123','20180124','20180125','20180126','20180129']:
+    data = ts_api.daily(trade_date=i)
+    up_data = data[data['pct_chg'] > 0].groupby('trade_date').agg({'ts_code':'count'}).reset_index().rename(columns={'ts_code':'up_count'})
+    down_data = data[data['pct_chg'] <= 0].groupby('trade_date').agg({'ts_code':'count'}).reset_index().rename(columns={'ts_code':'down_count'})
+    trade_date_data = pd.merge(up_data,down_data,on='trade_date',how='left').fillna(0)
+    final_data_18 = pd.concat([final_data_18,trade_date_data])
+
+

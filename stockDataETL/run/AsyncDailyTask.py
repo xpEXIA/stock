@@ -17,13 +17,14 @@ from stockDataETL.tasks.dm_stock_performance_daily_task import dm_stock_performa
 from stockDataETL.tasks.dm_daily_replay_daily_task import dm_daily_replay_daily_task
 from stockDataETL.tasks.dm_up_limit_statistics_daily_task import dm_up_limit_statistics_daily_task
 
-async def asyncDailyTask(request, date: str = None):
+async def asyncDailyTask(request):
     """异步处理每日任务"""
     get_TS_data = GetTSData()
     data_load = DataLoad()
     failure_list = []
     loop = get_event_loop()
     logger.info("开始获取ods数据")
+    date = request.GET.get('date')
 
     if date:
         today = date

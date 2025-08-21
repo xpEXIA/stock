@@ -23,7 +23,7 @@ from stockDataETL.run import InitDatabase, DailyTask, AsyncDailyTask
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('InitDatabase/', InitDatabase.initDatabase, name='InitDatabase'),
-    path('DailyTask', DailyTask.dailyTask, name='DailyTask'),
-    path('AsyncDailyTask', AsyncDailyTask.asyncDailyTask, name='AsyncDailyTask'),
+    path('DailyTask/', DailyTask.dailyTask, name='DailyTask'),
+    path('AsyncDailyTask/', AsyncDailyTask.asyncDailyTask, name='AsyncDailyTask'),
     path('test', test.test, name='test'),
 ]
