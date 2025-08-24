@@ -19,4 +19,4 @@ def ods_daily_basic_task(trade_date: str, connect: object = DataLoad()) -> str:
         return 'ods_daily_basic'
 
     data_load.append("ods_daily_basic", get_daily_basic)
-    data_load.close()
+

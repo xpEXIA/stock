@@ -22,7 +22,6 @@ async def dailyTask(request, date: str = None):
         today = datetime.today().strftime("%Y%m%d")
     get_trade_cal = get_TS_data.getTradeCal(start_date=today, end_date=today)
     if get_trade_cal['is_open'].values[0] != 1:
-        data_load.close()
         return JsonResponse(
             {
                 "status": "error",
@@ -105,7 +104,6 @@ async def dailyTask(request, date: str = None):
             logger.error(f"dm_up_limit_statistics_daily执行失败: {str(e)}")
             failure_list.append("dm_up_limit_statistics")
 
-        data_load.close()
         if failure_list == []:
             logger.info("每日数据获取成功")
             return JsonResponse(

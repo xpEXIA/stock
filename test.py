@@ -14,7 +14,7 @@ from stockDataETL.tasks.dm_stock_performance_daily_task import dm_stock_performa
 
 
 def test(request, date="fuck django"):
-    # dm_stock_performance_daily_task("20250808")
+    dm_stock_performance_daily_task("20250819")
     return JsonResponse(
         {
             "status": "success",
