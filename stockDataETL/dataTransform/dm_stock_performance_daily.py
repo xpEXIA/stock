@@ -27,7 +27,7 @@ def dm_stock_performance_daily(trade_date: str,
             up_limit,
             down_limit
         from dw_daily_trends
-        where trade_date >= date_sub(:trade_date, interval :interval day)
+        where trade_date >= date_sub(:trade_date, interval :interval day) and trade_date <= :trade_date
         """,
         {
             "trade_date": trade_date,

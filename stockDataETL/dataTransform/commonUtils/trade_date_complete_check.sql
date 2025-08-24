@@ -11,3 +11,4 @@ select * from dm_up_limit_statistics where trade_date = @trade_date;
 select * from dm_stock_performance where trade_date = @trade_date;
 select * from dw_daily_trends where trade_date = @trade_date;
 
+delete from dm_stock_performance where trade_date = '2025-08-08';
