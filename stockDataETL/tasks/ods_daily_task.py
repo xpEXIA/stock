@@ -19,5 +19,5 @@ def ods_daily_task(trade_date: str) -> str:
         return 'ods_daily'
 
     data_load.append("ods_daily", get_daily)
-    data_load.close()
+
 

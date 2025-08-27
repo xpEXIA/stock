@@ -156,7 +156,6 @@ def initDatabase(request):
     #                           connect=data_load)
 
 
-    data_load.close()
     if failure_list == []:
         logger.info("初始化数据库成功")
         return JsonResponse(

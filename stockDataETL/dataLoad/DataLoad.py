@@ -1,4 +1,4 @@
-
+from contextlib import contextmanager
 from pandas import DataFrame
 from stockDataETL import logging, engine
 from sqlalchemy import text
@@ -8,58 +8,76 @@ class DataLoad:
 
     def __init__(self):
 
-        self.stock_connect = engine.connect()
+        self.engine = engine  # 保存 engine 而不是连接
 
-    def getStockConnect(self):
-
-        logging.info("Get stock connect")
-        return self.stock_connect
+    def get_new_connection(self):
+        return self.engine.connect()
 
     def truncate(self, table_name: str):
 
+        conn = None
         try:
-            self.stock_connect.execute(text(f"TRUNCATE TABLE {table_name};"))
-            self.stock_connect.commit()
+            conn = self.get_new_connection()
+            conn.execute(text(f"TRUNCATE TABLE {table_name};"))
+            conn.commit()
             logging.warn(f"Truncate table {table_name}")
         except Exception as e:
-            self.stock_connect.rollback()
+            if conn:
+                conn.rollback()
             logging.error(f"Truncate table {table_name} failed", exc_info=True)
+        finally:
+            if conn:
+                conn.close()
 
     def append(self, table_name: str, data: DataFrame):
 
+        conn = None
         try:
-            data.to_sql(table_name, con=self.stock_connect, if_exists='append', index=False)
-            self.stock_connect.commit()
+            conn = self.get_new_connection()
+            data.to_sql(table_name, con=conn, if_exists='append', index=False)
+            conn.commit()
             logging.info(f"Append data to {table_name}, successfully append {len(data)} rows")
         except Exception as e:
-            self.stock_connect.rollback()
+            if conn:
+                conn.rollback()
             logging.error(f"Append data to {table_name} failed", exc_info=True)
+        finally:
+            if conn:
+                conn.close()
 
     def search(self, sql: str, parameters: dict = None):
 
         try:
-            result = self.stock_connect.execute(text(sql), parameters).fetchall()
-            logging.info("Search '" + sql + "' successfully")
-            return result
+            with self.get_new_connection() as conn:
+                result = conn.execute(text(sql), parameters).fetchall()
+                logging.info("Search '" + sql + "' successfully")
+                return result
         except Exception as e:
             logging.error("Search '" + sql + "' failed", exc_info=True)
             return None
 
     def execute(self, sql: str, sql_name: str, parameters: dict = None):
 
+        conn = None
         try:
-            result = self.stock_connect.execute(text(sql), parameters)
-            self.stock_connect.commit()
+            conn = self.get_new_connection()
+            result = conn.execute(text(sql), parameters)
+            conn.commit()
             logging.info("Execute '" + sql_name + "' successfully")
             return result
         except Exception as e:
-            self.stock_connect.rollback()
+            if conn:
+                conn.rollback()
             logging.error("Execute '" + sql + "' failed", exc_info=True)
             return None
+        finally:
+            if conn:
+                conn.close()
+
 
     def close(self):
 
-        self.stock_connect.close()
+        self.get_new_connection.close()
         logging.info("Database connection closed")
 
 

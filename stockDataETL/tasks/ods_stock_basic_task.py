@@ -19,5 +19,4 @@ def ods_stock_basic_task() -> str:
         return 'ods_stock_basic'
 
     data_load.append("ods_stock_basic", get_stock_basic)
-    data_load.close()
 

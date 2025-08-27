@@ -23,7 +23,6 @@ def ods_index_daily_task(trade_date: str) -> list:
             continue
         data_load.append("ods_index_daily", get_index_daily)
 
-    data_load.close()   
     if len(failure_list) > 0:
         return 'ods_index_daily'
 

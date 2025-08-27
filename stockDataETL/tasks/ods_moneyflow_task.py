@@ -19,4 +19,4 @@ def ods_moneyflow_task(trade_date: str) -> str:
         return "ods_moneyflow"
     
     data_load.append("ods_moneyflow", get_moneyflow)
-    data_load.close()
+

@@ -19,4 +19,3 @@ def ods_stk_limit_task(trade_date: str) -> str:
         return "ods_stk_limit"
 
     data_load.append("ods_stk_limit", get_stk_limit)
-    data_load.close()

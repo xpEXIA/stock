@@ -7,8 +7,8 @@ import pandas as pd
 from pandas import DataFrame
 from sqlalchemy import text
 
+ts.set_token('5ea96f455496951c2719b8b3a8daf621b9c8c2ea7ed9d30041a4c867')
 ts_api = ts.pro_api()
-
 engine = create_engine(
     "mysql+pymysql://{user}:{password}@{host}:{port}/{db}?charset=utf8".format(
         user=DATABASES['default']['USER'],
