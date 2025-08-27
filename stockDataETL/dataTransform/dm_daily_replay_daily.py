@@ -6,10 +6,9 @@ from stockDataETL.dataTransform.commonUtils.get_pretrade_date import get_pretrad
 from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import trade_date_complete_check
 
 
-def dm_daily_replay_daily(trade_date: str,
-                          connect: object = DataLoad()) -> None:
+def dm_daily_replay_daily(trade_date: str) -> None:
 
-    data_load = connect
+    data_load = DataLoad()
     logger.info(f"开始处理日复盘数据, 交易日:{trade_date}, 表dm_daily_replay")
     logger.info("获取交易日历数据")
     pretrade_date = get_pretrade_date(trade_date)

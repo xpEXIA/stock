@@ -2,14 +2,14 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 
-def ods_moneyflow_task(trade_date: str, connect: object = DataLoad()) -> str:
+def ods_moneyflow_task(trade_date: str) -> str:
 
 
     """
     股票资金流向数据任务
     """
 
-    data_load = connect
+    data_load = DataLoad()
     get_TS_data = GetTSData()
 
     logger.info("开始获取资金流向数据, 表ods_moneyflow")

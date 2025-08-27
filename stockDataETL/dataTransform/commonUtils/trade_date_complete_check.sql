@@ -1,4 +1,4 @@
-set @trade_date = '2025-08-15';
+set @trade_date = '2025-08-19';
 select count(id) as ods_daily  from ods_daily where trade_date = @trade_date;
 select count(id) as ods_daily_basic from ods_daily_basic where trade_date = @trade_date;
 select count(id) as ods_index_daily from ods_index_daily where trade_date = @trade_date;

@@ -2,14 +2,14 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 
-def ods_index_daily_task(trade_date: str, connect: object = DataLoad()) -> list:
+def ods_index_daily_task(trade_date: str) -> list:
 
 
     """
     股票指数日线行情数据任务
     """
 
-    data_load = connect
+    data_load = DataLoad()
     get_TS_data = GetTSData()
     failure_list = []
 

@@ -7,11 +7,12 @@ from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import trade_date_complete_check
 
 
-def dm_stock_performance_daily(trade_date: str,
-                               interval: int = 180,
-                               connect: object = DataLoad()) -> None:
+def dm_stock_performance_daily(
+        trade_date: str,
+        interval: int = 180
+) -> None:
 
-    data_load = connect
+    data_load = DataLoad()
     logger.info(f"开始处理股性数据, 交易日:{trade_date}, 表dm_stock_performance")
     data = data_load.search(
         """
@@ -58,7 +59,14 @@ def dm_stock_performance_daily(trade_date: str,
         down_limit_days=("pct_chg", "count")
     ).reset_index().rename(columns={"pct_chg": "down_limit_days"})
 
-    def _cal_pct_chg(data,up_data,cal_col,cal_fun,groupby,merge_on):
+    def _cal_pct_chg(
+            data,
+            up_data,
+            cal_col,
+            cal_fun,
+            groupby,
+            merge_on
+        ):
 
         up_data["trade_date"] = up_data["trade_date"].apply(
             # lambda x: (
@@ -205,6 +213,7 @@ def dm_stock_performance_daily(trade_date: str,
         ]
     ].apply(lambda x: round(x, 4))
 
+    data_load.truncate("dm_stock_performance")
     data_load.append("dm_stock_performance", dm_stock_performance_data)
 
 

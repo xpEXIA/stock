@@ -5,10 +5,9 @@ from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL.dataTransform.commonUtils.get_pretrade_date import get_pretrade_date
 
 
-def dm_up_limit_statistics_daily(trade_date: str,
-                                 connect: object = DataLoad()) -> None:
+def dm_up_limit_statistics_daily(trade_date: str) -> None:
 
-    data_load = connect
+    data_load = DataLoad()
     pretrade_date = get_pretrade_date(trade_date)
     logger.info(f"开始处理股票涨停数据, 交易日:{trade_date}, 表dm_up_limit_statistics")
     data  = data_load.search(

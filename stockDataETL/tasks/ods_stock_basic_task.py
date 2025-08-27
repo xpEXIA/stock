@@ -2,13 +2,13 @@ from stockDataETL.dataExtract.GetTSData import GetTSData
 from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 
-def ods_stock_basic_task(connect: object = DataLoad()) -> str:
+def ods_stock_basic_task() -> str:
 
     """
     股票基础数据任务
     """
 
-    data_load = connect
+    data_load = DataLoad()
     get_TS_data = GetTSData()
 
     logger.info("开始更新股票基础数据, 表ods_stock_basic")

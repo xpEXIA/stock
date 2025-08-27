@@ -20,7 +20,7 @@ from stockDataETL.tasks.dm_up_limit_statistics_daily_task import dm_up_limit_sta
 async def asyncDailyTask(request):
     """异步处理每日任务"""
     get_TS_data = GetTSData()
-    data_load = DataLoad()
+    # data_load = DataLoad()
     failure_list = []
     loop = get_event_loop()
     logger.info("开始获取ods数据")
@@ -36,7 +36,7 @@ async def asyncDailyTask(request):
     cal_date = get_trade_cal['cal_date'].values[0]
     
     if get_trade_cal['is_open'].values[0] != 1:
-        data_load.close()
+        # data_load.close()
         return JsonResponse(
             {
                 "status": "error",
@@ -46,7 +46,7 @@ async def asyncDailyTask(request):
     else:        
         # 异步执行所有通过get_TS_data请求接口获取数据的代码
         ods_tasks = [
-            loop.run_in_executor(None, ods_stock_basic_task, data_load),
+            loop.run_in_executor(None, ods_stock_basic_task),
             loop.run_in_executor(None, partial(ods_daily_task, trade_date=cal_date)),
             loop.run_in_executor(None, partial(ods_daily_basic_task, trade_date=cal_date)),
             loop.run_in_executor(None, partial(ods_stk_limit_task, trade_date=cal_date)),
@@ -85,7 +85,7 @@ async def asyncDailyTask(request):
             if dm_result is not None:
                 failure_list.append(dm_result)
         
-        data_load.close()
+        # data_load.close()
         if failure_list == []:
             logger.info("每日数据获取成功")
             return JsonResponse(
