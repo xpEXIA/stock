@@ -16,7 +16,8 @@ from stockDataETL.tasks.dm_up_limit_statistics_daily_task import dm_up_limit_sta
 
 
 def test(request, date="fuck django"):
-    dm_stock_performance_daily_task("20250819")
+    # dm_stock_performance_daily_task("20250827")
+    dm_up_limit_statistics_daily_task("2025-08-27")
     return JsonResponse(
         {
             "status": "success",

@@ -1,4 +1,4 @@
-SET @trade_date = '2025-08-22';
+SET @trade_date = '2025-08-27';
 select * from ods_daily where trade_date = @trade_date;
 select * from ods_daily_basic where trade_date = @trade_date;
 select * from ods_index_daily where trade_date = @trade_date;

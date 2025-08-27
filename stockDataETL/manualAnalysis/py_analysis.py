@@ -25,9 +25,9 @@ conn = engine.connect()
 data = pd.read_sql("""select 
                       * 
                   from dw_daily_trends
-                  where trade_date >= '2025-07-15' and trade_date <= '2025-08-12'
+                  where trade_date >= '2025-07-15' and trade_date <= '2025-08-25'
                """,engine)
-data['trade_date'] = data['trade_date'].apply(lambda x:x.strftime("%Y-%m-%d"))
+data['trade_date'] = data['trade_date'].apply(lambda x:x.strftime("%Y%m%d"))
 now_data = data[data['trade_date'] == '2025-08-07']
 pre_data = data[data['trade_date'] == '2025-06-23']
 cal_data = pd.merge(now_data,pre_data[['ts_code','close','net_d5_amount']],
@@ -36,15 +36,43 @@ cal_data['up_pct'] = round((cal_data['close_x'] - cal_data['close_y']) / cal_dat
 cal_data.sort_values(by='up_pct',ascending=False,inplace=True)
 cal_data['up_pct'].median()
 len(cal_data[cal_data['up_pct'] > 10])
-industry_data = cal_data[['industry','up_pct']].groupby('industry').agg({'up_pct':'median'}).sort_values(by='up_pct',ascending=False)
 
-pre_data = data[data['trade_date'] != '2025-08-12'].groupby('ts_code').agg({'vol':'mean','close':'mean'}).reset_index()
-vol_data = (data[data['trade_date'] == '2025-08-12'][['ts_code','name','trade_date','close','pct_chg','market','vol']]
+pre_data = data[data['trade_date'] <= '20250811'].groupby('ts_code').agg({'vol':'mean','close':'median'}).reset_index()
+vol_data = (data[data['trade_date'] == '20250811'][['ts_code','name','trade_date','close','pct_chg','market','vol','turnover_rate_f']]
             .merge(pre_data,on='ts_code',how='left'))
 vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
 vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
 vol_data.sort_values(by=['close_pct','vol_pct'],ascending=False,inplace=True)
-asd = vol_data[(vol_data['vol_pct'] > 3) & (vol_data['market'].isin(['主板','创业板']))]
+cal_data = vol_data[(vol_data['vol_pct'] > 2.5) & (vol_data['market'] != '科创板')]
+
+now_data = data[(data['trade_date'] <= '20250822') & (data['trade_date'] >= '20250812')].groupby(['ts_code','name'])['close'].max().reset_index()
+now_data = now_data.merge(data[(data['trade_date'] <= '20250822') & (data['trade_date'] >= '20250812')][['ts_code','name','trade_date','close']],
+                          on=['ts_code','name','close'],how='left')
+now_data.drop_duplicates(subset=['ts_code','name'],keep='first',inplace=True)
+
+up_data = cal_data.merge(now_data,on=['ts_code','name'],how='left')
+up_data['close_max_pct'] = round((up_data['close'] - up_data['close_x']) / up_data['close_x'],4) * 100
+up_data['days'] = (up_data['trade_date_y'].astype('datetime64[ns]') - up_data['trade_date_x'].astype('datetime64[ns]')).dt.days
+
+up_data_turnover = up_data[up_data['turnover_rate_f'] >= 20]
+
+all_data = pd.merge(data[data['trade_date'] == '20250811'][['ts_code','name','trade_date','close']],
+                    now_data,on=['ts_code','name'],how='left')
+all_data['close_max_pct'] = round((all_data['close_y'] - all_data['close_x']) / all_data['close_x'],4) * 100
+
+pre_data = data[(data['trade_date'] <= '20250825') & (data['trade_date'] >= '20250726')].groupby('ts_code').agg({'vol':'mean','close':'median'}).reset_index()
+vol_data = (data[data['trade_date'] == '20250825'][['ts_code','name','trade_date','close','pct_chg','market','vol','turnover_rate_f']]
+            .merge(pre_data,on='ts_code',how='left'))
+vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
+vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
+vol_data.sort_values(by=['close_pct','vol_pct'],ascending=False,inplace=True)
+vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
+vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
+last_data = data[data['trade_date'] == '20250821'][['ts_code','name','trade_date','vol']]
+vol_data = vol_data.merge(last_data,on=['ts_code','name'],how='left')
+vol_data['vol_pct_last'] = round(vol_data['vol'] / vol_data['vol_y'],2)
+cal_data = vol_data[(vol_data['vol_pct'] > 2.5) & (~vol_data['market'].isin(['科创板','北交所']))
+                    & (vol_data['turnover_rate_f'] >= 15) & (vol_data['vol_pct_last'] <= 2)]
 
 final_data_18 = DataFrame()
 for i in ['20180116','20180117','20180118','20180119','20180122','20180123','20180124','20180125','20180126','20180129']:
@@ -55,3 +83,20 @@ for i in ['20180116','20180117','20180118','20180119','20180122','20180123','201
     final_data_18 = pd.concat([final_data_18,trade_date_data])
 
 
+
+data = pd.read_sql("""select 
+            trade_date,
+            ts_code,
+            close,
+            open,
+            high,
+            pre_close,
+            open_pct_chg,
+            up_limit
+        from dw_daily_trends
+        where trade_date >= '2025-08-26' and trade_date <= '2025-08-27'
+               """,engine)
+data['trade_date'] = data['trade_date'].apply(lambda x:x.strftime("%Y%m%d"))
+a = {}
+a['up_limit_count'] = data[(data['up_limit'] == data['close'])
+                                                         & (data['trade_date'] == '20250827')]['close'].count()
