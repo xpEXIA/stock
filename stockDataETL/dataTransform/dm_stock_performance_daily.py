@@ -166,7 +166,7 @@ def dm_stock_performance_daily(
                             .sort_values(by='trade_date',ascending=False))
     vol_start_date = trade_date_duplicate['trade_date'].iloc[20]
     vol_end_date = trade_date_duplicate['trade_date'].iloc[1]
-    mean_vol = (data[['trade_date',"ts_code", "vol"]][(data['trade_date'] >= vol_start_date)
+    mean_vol = (data[["ts_code", "vol"]][(data['trade_date'] >= vol_start_date)
                                                      & (data['trade_date'] <= vol_end_date)]
                 .groupby('ts_code')
                 .agg(mean_vol=('vol', 'mean'))
@@ -180,18 +180,18 @@ def dm_stock_performance_daily(
     vol_20_pct['vol_20_pct'] = vol_20_pct['vol'] / vol_20_pct['mean_vol']
 
     pretrade_date = get_pretrade_date(trade_date)
-    first_double_vol = (data[['ts_code','vol']][data['trade_date'] == trade_date]
-                        .merge(
+    first_double_vol = data[['ts_code','vol']][data['trade_date'] == trade_date].merge(
         data[['ts_code','vol']][data['trade_date'] == pretrade_date],
         how="left",
         on=['ts_code']
-    ))
-    # if first_double_vol['vol_x'] / first_double_vol['vol_y'] >2.5:
-    #     first_double_vol['first_double_vol'] = 1
-    # else:
-    #     first_double_vol['first_double_vol'] = 0
+    ).merge(
+        vol_20_pct,
+        how="left",
+        on=['ts_code']
+    )
     first_double_vol['first_double_vol'] = (
-            first_double_vol['vol_x'] / first_double_vol['vol_y'] > 2.5
+        (first_double_vol['vol_x'] / first_double_vol['vol_y'] > 2)
+        & (first_double_vol['vol_20_pct'] > 2.5)
     ).astype(int)
 
     dm_stock_performance_data = up_days.merge(
@@ -276,7 +276,7 @@ def dm_stock_performance_daily(
         ]
     ].apply(lambda x: round(x, 4))
 
-    data_load.truncate("dm_stock_performance")
+    # data_load.truncate("dm_stock_performance")
     data_load.append("dm_stock_performance", dm_stock_performance_data)
 
 
