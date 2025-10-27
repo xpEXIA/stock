@@ -6,6 +6,7 @@ from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 from django.http import request, JsonResponse
 from asyncio import gather, get_event_loop
+from stockDataETL.tasks.dm_daily_vol_unusual_daily_task import dm_daily_vol_unusual_daily_task
 from stockDataETL.tasks.ods_stock_basic_task import ods_stock_basic_task
 from stockDataETL.tasks.ods_daily_task import ods_daily_task
 from stockDataETL.tasks.ods_daily_basic_task import ods_daily_basic_task
@@ -75,6 +76,7 @@ async def asyncDailyTask(request):
             loop.run_in_executor(None, partial(dm_daily_replay_daily_task, trade_date=trade_date)),
             loop.run_in_executor(None, partial(dm_stock_performance_daily_task, trade_date=trade_date)),
             loop.run_in_executor(None, partial(dm_up_limit_statistics_daily_task, trade_date=trade_date)),
+            loop.run_in_executor(None, partial(dm_daily_vol_unusual_daily_task, trade_date=trade_date)),
         ]
         
         # 等待剩余的异步任务完成

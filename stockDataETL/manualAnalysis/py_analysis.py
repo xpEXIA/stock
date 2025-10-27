@@ -25,9 +25,11 @@ conn = engine.connect()
 data = pd.read_sql("""select 
                       * 
                   from dw_daily_trends
-                  where trade_date >= '2025-07-15' and trade_date <= '2025-08-25'
+                  where trade_date >= '2025-09-15' and trade_date <= '2025-10-21'
                """,engine)
 data['trade_date'] = data['trade_date'].apply(lambda x:x.strftime("%Y%m%d"))
+
+
 now_data = data[data['trade_date'] == '2025-08-07']
 pre_data = data[data['trade_date'] == '2025-06-23']
 cal_data = pd.merge(now_data,pre_data[['ts_code','close','net_d5_amount']],
@@ -60,15 +62,15 @@ all_data = pd.merge(data[data['trade_date'] == '20250811'][['ts_code','name','tr
                     now_data,on=['ts_code','name'],how='left')
 all_data['close_max_pct'] = round((all_data['close_y'] - all_data['close_x']) / all_data['close_x'],4) * 100
 
-pre_data = data[(data['trade_date'] <= '20250825') & (data['trade_date'] >= '20250726')].groupby('ts_code').agg({'vol':'mean','close':'median'}).reset_index()
-vol_data = (data[data['trade_date'] == '20250825'][['ts_code','name','trade_date','close','pct_chg','market','vol','turnover_rate_f']]
+pre_data = data[(data['trade_date'] <= '20251020') & (data['trade_date'] >= '20250915')].groupby('ts_code').agg({'vol':'mean','close':'median'}).reset_index()
+vol_data = (data[data['trade_date'] == '20251021'][['ts_code','name','trade_date','close','pct_chg','market','vol','turnover_rate_f']]
             .merge(pre_data,on='ts_code',how='left'))
 vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
 vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
 vol_data.sort_values(by=['close_pct','vol_pct'],ascending=False,inplace=True)
 vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
 vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
-last_data = data[data['trade_date'] == '20250821'][['ts_code','name','trade_date','vol']]
+last_data = data[data['trade_date'] == '20251020'][['ts_code','name','trade_date','vol']]
 vol_data = vol_data.merge(last_data,on=['ts_code','name'],how='left')
 vol_data['vol_pct_last'] = round(vol_data['vol'] / vol_data['vol_y'],2)
 cal_data = vol_data[(vol_data['vol_pct'] > 2.5) & (~vol_data['market'].isin(['科创板','北交所']))
