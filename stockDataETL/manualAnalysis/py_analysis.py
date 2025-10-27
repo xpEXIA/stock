@@ -62,29 +62,6 @@ all_data = pd.merge(data[data['trade_date'] == '20250811'][['ts_code','name','tr
                     now_data,on=['ts_code','name'],how='left')
 all_data['close_max_pct'] = round((all_data['close_y'] - all_data['close_x']) / all_data['close_x'],4) * 100
 
-pre_data = data[(data['trade_date'] <= '20251020') & (data['trade_date'] >= '20250915')].groupby('ts_code').agg({'vol':'mean','close':'median'}).reset_index()
-vol_data = (data[data['trade_date'] == '20251021'][['ts_code','name','trade_date','close','pct_chg','market','vol','turnover_rate_f']]
-            .merge(pre_data,on='ts_code',how='left'))
-vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
-vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
-vol_data.sort_values(by=['close_pct','vol_pct'],ascending=False,inplace=True)
-vol_data['vol_pct'] = round(vol_data['vol_x'] / vol_data['vol_y'],2)
-vol_data['close_pct'] = round((vol_data['close_x'] - vol_data['close_y']) / vol_data['close_y'],4) * 100
-last_data = data[data['trade_date'] == '20251020'][['ts_code','name','trade_date','vol']]
-vol_data = vol_data.merge(last_data,on=['ts_code','name'],how='left')
-vol_data['vol_pct_last'] = round(vol_data['vol'] / vol_data['vol_y'],2)
-cal_data = vol_data[(vol_data['vol_pct'] > 2.5) & (~vol_data['market'].isin(['科创板','北交所']))
-                    & (vol_data['turnover_rate_f'] >= 15) & (vol_data['vol_pct_last'] <= 2)]
-
-final_data_18 = DataFrame()
-for i in ['20180116','20180117','20180118','20180119','20180122','20180123','20180124','20180125','20180126','20180129']:
-    data = ts_api.daily(trade_date=i)
-    up_data = data[data['pct_chg'] > 0].groupby('trade_date').agg({'ts_code':'count'}).reset_index().rename(columns={'ts_code':'up_count'})
-    down_data = data[data['pct_chg'] <= 0].groupby('trade_date').agg({'ts_code':'count'}).reset_index().rename(columns={'ts_code':'down_count'})
-    trade_date_data = pd.merge(up_data,down_data,on='trade_date',how='left').fillna(0)
-    final_data_18 = pd.concat([final_data_18,trade_date_data])
-
-
 
 data = pd.read_sql("""select 
             trade_date,

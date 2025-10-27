@@ -81,7 +81,7 @@ def dm_daily_vol_unusual(trade_date: str) -> None:
     dm_daily_vol_unusual_data = vol_data[(vol_data['vol_pct'] > 2.5)
                     & (~vol_data['market'].isin(['科创板', '北交所']))
                     & (vol_data['turnover_rate_f'] >= 15)
-                    & (vol_data['vol_pct_last'] <= 2)]
+                    & (vol_data['vol_pct_last'] >= 2)]
 
     dm_daily_vol_unusual_data = dm_daily_vol_unusual_data[['ts_code', 'name', 'trade_date', 'market', 'vol', 'vol_pct',
                                                           'vol_pct_last', 'close', 'close_pct', 'pct_chg', 'pe',
