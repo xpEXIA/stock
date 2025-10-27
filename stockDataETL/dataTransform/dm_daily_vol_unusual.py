@@ -18,7 +18,7 @@ def dm_daily_vol_unusual(trade_date: str) -> None:
            from ods_trade_cal
            where cal_date <= :end_date
              and id <= (
-               select id + 50
+               select id + 60
                from ods_trade_cal
                where cal_date = :end_date
                )
