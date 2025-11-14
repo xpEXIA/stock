@@ -1,4 +1,3 @@
-
 from pandas.core.interchange.dataframe_protocol import DataFrame
 from stockDataETL import ts_api
 from stockDataETL import logging
