@@ -39,7 +39,8 @@ class GetMyData:
                    + ts_code)
             response = requests.get(url)
             if response.status_code != 200:
-                logger.error(f"request real time daily data failed with status code: {response.status_code}")
+                logger.error(f"request real time daily data failed with status code: {response.status_code}, "
+                             + f"reason: {response.reason}")
                 return None
             if not response.text.strip():
                 logger.error("real time daily API returned empty response")
@@ -77,11 +78,11 @@ class GetMyData:
                                 "ud": "change",
                                 "pc": "pct_chg",
                                 "zf": "zf",
-                                "t":"update",
-                                "pe":"pe",
-                                "tr":"turnover_ratio_f",
-                                "pd_ratio":"pd_ratio",
-                                "tv":"t_vol",})
+                                "t": "update",
+                                "pe": "pe",
+                                "tr": "turnover_ratio_f",
+                                "pd_ratio": "pd_ratio",
+                                "tv": "t_vol",})
             )
             return result
         except Exception as e:
