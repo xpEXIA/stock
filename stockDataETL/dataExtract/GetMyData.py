@@ -80,7 +80,7 @@ class GetMyData:
                                 "zf": "zf",
                                 "t": "update",
                                 "pe": "pe",
-                                "tr": "turnover_ratio_f",
+                                "tr": "turnover_rate_f",
                                 "pd_ratio": "pd_ratio",
                                 "tv": "t_vol",})
             )

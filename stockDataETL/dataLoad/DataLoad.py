@@ -13,7 +13,7 @@ class DataLoad:
     def get_new_connection(self):
         return self.engine.connect()
 
-    def truncate(self, table_name: str):
+    def truncate(self, table_name: str) -> None:
 
         conn = None
         try:
@@ -29,7 +29,7 @@ class DataLoad:
             if conn:
                 conn.close()
 
-    def append(self, table_name: str, data: DataFrame):
+    def append(self, table_name: str, data: DataFrame) -> None:
 
         conn = None
         try:
@@ -45,7 +45,7 @@ class DataLoad:
             if conn:
                 conn.close()
 
-    def search(self, sql: str, parameters: dict = None):
+    def search(self, sql: str, parameters: dict = None) -> object:
 
         try:
             with self.get_new_connection() as conn:

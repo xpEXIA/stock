@@ -5,169 +5,83 @@ from stockDataETL.dataLoad.DataLoad import DataLoad
 from stockDataETL import logger
 from django.http import request, JsonResponse
 
-from stockDataETL.dataTransform.commonUtils.trade_date_complete_check import trade_date_complete_check
-from stockDataETL.dataTransform.dm_daily_replay_daily import dm_daily_replay_daily
-from stockDataETL.dataTransform.dm_stock_performance_daily import dm_stock_performance_daily
-from stockDataETL.dataTransform.dm_up_limit_statistics_daily import dm_up_limit_statistics_daily
-from stockDataETL.dataTransform.dw_daily_trends_daily import dw_daily_trends_daily
+from stockDataETL.run.AsyncDailyTask import asyncDailyTask
+from asyncio import get_event_loop
 
 
 def initDatabase(request):
-
-
-    table_list = ["ods_stock_basic", "ods_trade_cal", "ods_stock_company", "ods_daily", "ods_daily_basic",
-                  "ods_index_basic", "ods_index_daily", "ods_moneyflow", "ods_stk_limit", 'dw_daily_trends',
-                  "dm_daily_replay", "dm_stock_performance", "dm_up_limit_statistics"]
-    # table_list = ["dm_daily_replay", "dm_stock_performance", "dm_up_limit_statistics"]
-
+    """
+    重写初始化数据库函数，通过调用AsyncDailyTask函数来实现对过去一年交易日的数据库初始化
+    """
     logger.info("开始初始化数据库")
+    
+    # 创建GetTSData实例获取交易日历
     get_TS_data = GetTSData()
-    data_load = DataLoad()
-    failure_list = []
-
-    logger.info("开始清空数据")
-    for table in table_list:
-        data_load.truncate(table)
-
-    logger.info("开始初始化股票基础数据, 表ods_stock_basic")
-    get_stock_basic = get_TS_data.getStockBasic()
-    if get_stock_basic is None:
-        logger.error("ods_stock_basic数据库数据导入失败, 数据为空")
-        failure_list.append("ods_stock_basic")
-    data_load.append("ods_stock_basic", get_stock_basic)
-
-    logger.info("开始初始化交易日历数据, 表ods_trade_cal")
+    
+    # 计算过去一年的日期范围
+    end_date = datetime.today().strftime("%Y%m%d")
     start_date = (datetime.today() - timedelta(days=365)).strftime("%Y%m%d")
-    end_date = (datetime.today() + timedelta(days=180)).strftime("%Y%m%d")
+    
+    # 获取过去一年的交易日历数据
+    logger.info(f"获取{start_date}至{end_date}的交易日历数据")
     get_trade_cal = get_TS_data.getTradeCal(start_date=start_date, end_date=end_date)
-    logger.info("获取初始化交易日志列表")
-    trade_date_list = get_trade_cal[(get_trade_cal["is_open"] == 1) &
-                                    (get_trade_cal["cal_date"] <= datetime.today().strftime("%Y%m%d"))]["cal_date"].tolist()
-
+    
     if get_trade_cal is None:
-        logger.error("ods_trade_cal数据库数据导入失败, 数据为空")
-        failure_list.append("ods_trade_cal")
-    data_load.append("ods_trade_cal", get_trade_cal)
-
-    logger.info("开始初始化股票公司数据, 表ods_stock_company")
-    get_stock_company = get_TS_data.getStockCompany()
-    if get_stock_company is None:
-        logger.error("ods_stock_company数据库数据导入失败, 数据为空")
-        failure_list.append("ods_stock_company")
-    data_load.append("ods_stock_company", get_stock_company)
-
-
-
-    logger.info("开始初始化日线行情数据, 表ods_daily")
+        logger.error("获取交易日历数据失败")
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "获取交易日历数据失败"
+            }
+        )
+    
+    # 筛选出is_open为1的交易日期
+    logger.info("筛选交易日")
+    trade_date_list = get_trade_cal[(get_trade_cal["is_open"] == 1) &
+                                    (get_trade_cal["cal_date"] <= end_date)]["cal_date"].tolist()
+    
+    logger.info(f"共获取到{len(trade_date_list)}个交易日")
+    logger.info(f"交易日列表: {trade_date_list}")
+    
+    # 遍历每个交易日，调用AsyncDailyTask函数
+    failure_dates = []
     for trade_date in trade_date_list:
-        get_daily = get_TS_data.getDaily(trade_date=trade_date)
-        if get_daily is None:
-            logger.error(f"ods_daily数据库数据导入失败, 数据为空, 交易日: {trade_date}")
-            failure_list.append("ods_daily")
-            continue
-        data_load.append("ods_daily", get_daily)
-        logger.info(f"交易日: {trade_date}, ods_daily数据导入数据库数据导入成功")
-
-    logger.info("开始初始化每日指标数据, 表ods_daily_basic")
-    for trade_date in trade_date_list:
-        get_daily_basic = get_TS_data.getDailyBasic(trade_date=trade_date)
-        if get_daily_basic is None:
-            logger.error(f"ods_daily_basic数据库数据导入失败, 数据为空, 交易日: {trade_date}")
-            failure_list.append("ods_daily_basic")
-            continue
-        data_load.append("ods_daily_basic", get_daily_basic)
-        logger.info(f"交易日: {trade_date}, ods_daily_basic数据导入数据库数据导入成功")
-
-    logger.info("开始初始化指数基础数据, 表ods_index_basic")
-    market = ["SZSE", "SSE"]
-    for market_ in market:
-        get_index_basic = get_TS_data.getIndexBasic(market=market_)
-        if get_index_basic is None:
-            logger.error(f"ods_index_basic数据库数据导入失败, 数据为空, 交易所: {market_}")
-            failure_list.append("ods_index_basic")
-            continue
-        data_load.append("ods_index_basic", get_index_basic)
-        logger.info(f"交易所: {market_}, ods_index_basic数据导入数据库数据导入成功")
-
-    logger.info("开始初始化指数日线行情数据, 表ods_index_daily")
-    index_code = ["000001.SH","399107.SZ"]
-    for index_code_ in index_code:
-        get_index_daily = get_TS_data.getIndexDaily(ts_code=index_code_,
-                                                    start_date=start_date,
-                                                    end_date=datetime.today().strftime("%Y%m%d"))
-        if get_index_daily is None:
-            logger.error(f"ods_index_daily数据库数据导入失败, 数据为空, 指数代码: {index_code_}")
-            failure_list.append("ods_index_daily")
-            continue
-        data_load.append("ods_index_daily", get_index_daily)
-        logger.info(f"指数代码: {index_code_}, ods_index_daily数据导入数据库数据导入成功")
-
-    logger.info("开始初始化资金流向数据, 表ods_moneyflow")
-    for trade_date in trade_date_list:
-        get_moneyflow = get_TS_data.getMoneyFlow(trade_date=trade_date)
-        if get_moneyflow is None:
-            logger.error(f"ods_moneyflow数据库数据导入失败, 数据为空, 交易日: {trade_date}")
-            failure_list.append("ods_moneyflow")
-            continue
-        data_load.append("ods_moneyflow", get_moneyflow)
-        logger.info(f"交易日: {trade_date}, ods_moneyflow数据导入数据库数据导入成功")
-
-    logger.info("开始初始化股票涨跌幅数据, 表ods_stk_limit")
-    for trade_date in trade_date_list:
-        get_stk_limit = get_TS_data.getStkLimit(trade_date=trade_date)
-        if get_stk_limit is None:
-            logger.error(f"ods_stk_limit数据库数据导入失败, 数据为空, 交易日: {trade_date}")
-            failure_list.append("ods_stk_limit")
-            continue
-        data_load.append("ods_stk_limit", get_stk_limit)
-
-    trade_date_list = list(map(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"), trade_date_list))
-    trade_date_list.reverse()
-    logger.info("开始初始化股票日趋势数据, 表dw_daily_trends")
-    for trade_date in trade_date_list[1:]:
-        dw_daily_trends_daily(trade_date=trade_date,connect=data_load)
-    # trade_date_complete_check(table="dw_daily_trends",
-    #                           start_date=start_date,
-    #                           end_date=datetime.today().strftime("%Y%m%d"),
-    #                           connect=data_load)
-
-    logger.info("开始初始化股票日复盘数据, 表dm_daily_replay")
-    for trade_date in trade_date_list[1:]:
-        dm_daily_replay_daily(trade_date=trade_date,connect=data_load)
-    # trade_date_complete_check(table="dm_daily_replay",
-    #                           start_date=start_date,
-    #                           end_date=datetime.today().strftime("%Y%m%d"),
-    #                           connect=data_load)
-
-    logger.info("开始初始化个股股性数据, 表dm_stock_performance")
-    for trade_date in trade_date_list[60:]:
-        dm_stock_performance_daily(trade_date=trade_date,connect=data_load)
-    # trade_date_complete_check(table="dm_stock_performance",
-    #                           start_date=start_date,
-    #                           end_date=datetime.today().strftime("%Y%m%d"),
-    #                           connect=data_load)
-
-    logger.info("开始初始化涨停数据, 表dm_up_limit_statistics")
-    for trade_date in trade_date_list[1:]:
-        dm_up_limit_statistics_daily(trade_date=trade_date,connect=data_load)
-    # trade_date_complete_check(table="dm_up_limit_statistics",
-    #                           start_date=start_date,
-    #                           end_date=datetime.today().strftime("%Y%m%d"),
-    #                           connect=data_load)
-
-
-    if failure_list == []:
-        logger.info("初始化数据库成功")
+        logger.info(f"开始处理交易日: {trade_date}")
+        
+        try:
+            # 创建模拟请求对象，包含trade_date参数
+            class MockRequest:
+                def __init__(self, trade_date):
+                    self.GET = {'date': trade_date}
+            
+            # 调用AsyncDailyTask函数处理该交易日数据
+            loop = get_event_loop()
+            result = loop.run_until_complete(asyncDailyTask(MockRequest(trade_date)))
+            
+            # 检查处理结果
+            if result.status_code == 200:
+                logger.info(f"交易日{trade_date}数据处理成功")
+            else:
+                logger.error(f"交易日{trade_date}数据处理失败: {result.content.decode('utf-8')}")
+                failure_dates.append(trade_date)
+                
+        except Exception as e:
+            logger.error(f"处理交易日{trade_date}时发生异常: {str(e)}")
+            failure_dates.append(trade_date)
+    
+    if not failure_dates:
+        logger.info("数据库初始化完成")
         return JsonResponse(
             {
                 "status": "success",
-                "message": "初始化数据库成功"
+                "message": f"数据库初始化完成，共处理{len(trade_date_list)}个交易日"
             }
         )
-    logger.error(f"初始化数据库失败, 失败表: {failure_list}")
-    return JsonResponse(
-        {
-            "status": "error",
-            "message": f"初始化数据库失败, 失败表: {failure_list}"
-        }
-    )
+    else:
+        logger.error(f"数据库初始化失败，失败日期: {failure_dates}")
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": f"数据库初始化失败，{len(failure_dates)}个交易日处理失败，失败日期: {failure_dates}"
+            }
+        )

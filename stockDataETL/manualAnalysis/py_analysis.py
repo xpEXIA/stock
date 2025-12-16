@@ -13,45 +13,62 @@ org_data = pd.read_sql(
     text("""
         select
             a.ts_code,
-            a.name,
-            a.industry,
-            a.market,
-            a.circ_mv,
-            a.pe,
-            ROUND(((b.close - a.close) / a.close), 4) * 100 pct
+            a.pretrade_date,
+            a.trade_date,
+            b.name,
+            b.pre_close,
+            b.open,
+            b.high,
+            b.low,
+            b.close,
+            b.pct_chg,
+            b.amout
         from (
             select
                 ts_code,
-                name,
-                industry,
-                market,
-                circ_mv,
-                pe,
-                close
-            from stock.dw_daily_trends
-            where trade_date = '2025-10-20'
+                ods_trade_cal.pretrade_date pretrade_date,
+                DATE_FORMAT(ods_trade_cal.cal_date,'%Y%m%d') as trade_date 
+            from dm_daily_one_night_stock left join ods_trade_cal
+                on DATE_FORMAT(update_time,'%Y%m%d') = ods_trade_cal.pretrade_date
+            where ods_trade_cal.is_open = 1
+              and dm_daily_one_night_stock.update_time < '2025-12-15'
         ) a left join (
             select
                 ts_code,
-                close
-            from stock.dw_daily_trends
-            where trade_date = '2025-11-07'
-        ) b on a.ts_code = b.ts_code
-        where a.market in ('主板','创业板')
-        order by pct desc
+                trade_date,
+                name,
+                pre_close,
+                open,
+                high,
+                low,
+                close,
+                pct_chg,
+                amout
+            from dw_daily_trends
+        ) b on a.ts_code = b.ts_code and a.trade_date = b.trade_date
     """),
     con=engine
 )
+org_data['open_pct_chg'] = round((org_data.open - org_data.pre_close) / org_data.pre_close,4) * 100
+org_data['high_pct_chg'] = round((org_data.high - org_data.pre_close) / org_data.pre_close,4) * 100
 
-small_mv = org_data[org_data.circ_mv < 1500000]
-small_mv_up = small_mv[small_mv.pct >= 0]
-large_mv = org_data[org_data.circ_mv >= 1500000]
-large_mv_up = large_mv[large_mv.pct >= 0]
+open_mean = org_data.groupby("trade_date")["open_pct_chg"].mean().rename("open_mean").reset_index()
+high_mean = org_data.groupby("trade_date")["high_pct_chg"].mean().rename("high_mean").reset_index()
+open_median = org_data.groupby("trade_date")["open_pct_chg"].median().rename("open_median").reset_index()
+high_median = org_data.groupby("trade_date")["high_pct_chg"].median().rename("high_median").reset_index()
+static2 = (open_mean.merge(high_mean, how="left", on="trade_date")
+          .merge(open_median, how="left", on="trade_date")
+          .merge(high_median, how="left", on="trade_date"))
 
-len(small_mv_up) / len(small_mv)
-len(large_mv_up) / len(large_mv)
-small_mv_up.pct.median()
-large_mv_up.pct.median()
 
-getMyData = GetMyData()
-a = getMyData.getRealTimeDaily(["000001", "000002", "000004"])
+a = org_data.groupby("trade_date")["ts_code"].count().rename("all_num").reset_index()
+b = org_data[org_data.open - org_data.pre_close > 0].groupby("trade_date")["ts_code"].count().rename("open_up_num").reset_index()
+c = org_data[org_data.close - org_data.pre_close > 0].groupby("trade_date")["ts_code"].count().rename("close_up_num").reset_index()
+d = org_data[org_data.high - org_data.pre_close > 0].groupby("trade_date")["ts_code"].count().rename("high_up_num").reset_index()
+e = a.merge(b, how="left", on="trade_date").merge(c, how="left", on="trade_date").merge(d, how="left", on="trade_date")
+
+e["open_up_ratio"] = e.open_up_num / e.all_num
+e["close_up_ratio"] = e.close_up_num / e.all_num
+e["high_up_ratio"] = e.high_up_num / e.all_num
+
+

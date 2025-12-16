@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 import test
-from stockDataETL.run import InitDatabase, DailyTask, AsyncDailyTask
+from stockDataETL.run import InitDatabase, DailyTask, AsyncDailyTask, OneNightStockTask
 
 
 urlpatterns = [
@@ -25,5 +25,6 @@ urlpatterns = [
     path('InitDatabase/', InitDatabase.initDatabase, name='InitDatabase'),
     path('DailyTask/', DailyTask.dailyTask, name='DailyTask'),
     path('AsyncDailyTask/', AsyncDailyTask.asyncDailyTask, name='AsyncDailyTask'),
+    path('OneNightStockTask/', OneNightStockTask.oneNightStockTask, name='OneNightStockTask'),
     path('test', test.test, name='test'),
 ]

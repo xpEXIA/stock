@@ -110,10 +110,10 @@ try {
     Write-Host $_.Exception.Message -ForegroundColor Yellow
 }
 
-# Start Gunicorn server
+# Start Django development server (for Windows compatibility)
 Write-Host "=====================================" -ForegroundColor Cyan
-Write-Host "Starting Gunicorn server..." -ForegroundColor Yellow
-Write-Host "Log file: $GUNICORN_LOG_FILE" -ForegroundColor Yellow
+Write-Host "Starting Django development server..." -ForegroundColor Yellow
+Write-Host "Listen Address: $GUNICORN_HOST`:$GUNICORN_PORT" -ForegroundColor Yellow
 Write-Host "Press Ctrl+C to stop server" -ForegroundColor Yellow
 Write-Host "=====================================" -ForegroundColor Cyan
 
@@ -121,16 +121,11 @@ try {
     # Set environment variables
     $env:DJANGO_SETTINGS_MODULE = $DJANGO_SETTINGS_MODULE
     
-    # Directly execute Gunicorn command to ensure correct startup
-    gunicorn stockDataETL.wsgi:application `
-        --bind "$GUNICORN_HOST`:$GUNICORN_PORT" `
-        --workers $GUNICORN_WORKERS `
-        --timeout $GUNICORN_TIMEOUT `
-        --log-level $GUNICORN_LOG_LEVEL `
-        --log-file "$GUNICORN_LOG_FILE" `
-        --pid "$GUNICORN_PID_FILE"
+    # Use Django's built-in runserver for Windows compatibility
+    cd $PROJECT_ROOT
+    python manage.py runserver $GUNICORN_HOST`:$GUNICORN_PORT
 } catch {
-    Write-Host "Error: Failed to start Gunicorn!" -ForegroundColor Red
+    Write-Host "Error: Failed to start Django server!" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     exit 1
 }
