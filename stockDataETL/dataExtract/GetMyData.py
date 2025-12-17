@@ -1,4 +1,5 @@
 import requests
+import time
 from django.db import connection
 from pandas.core.interchange.dataframe_protocol import DataFrame
 from pandas import DataFrame
@@ -37,7 +38,8 @@ class GetMyData:
                    + self.license_key
                    + "?stock_codes="
                    + ts_code)
-            response = requests.get(url)
+            # 添加超时参数，防止请求长时间等待
+            response = requests.get(url, timeout=10)
             if response.status_code != 200:
                 logger.error(f"request real time daily data failed with status code: {response.status_code}, "
                              + f"reason: {response.reason}")
@@ -85,6 +87,15 @@ class GetMyData:
                                 "tv": "t_vol",})
             )
             return result
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Real time daily API request timed out: {str(e)}")
+            return None
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Real time daily API connection error: {str(e)}")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Real time daily API request exception: {str(e)}")
+            return None
         except Exception as e:
             logger.error("request real time daily data failure", exc_info=True)
             return None
@@ -153,12 +164,26 @@ class GetMyData:
                 ts_code_list_batch = ts_code_list[i:i+batch_size]
                 logger.info(f"正在处理批次 {i//batch_size + 1}/{(len(ts_code_list_clean)-1)//batch_size + 1}，包含{len(batch)}支股票")
                 
-                # 调用现有的getMyRealTimeDaily函数处理单个批次
-                batch_result = self.getMyRealTimeDaily(batch)
+                # 调用现有的getMyRealTimeDaily函数处理单个批次，最多重试3次
+                retry_count = 0
+                max_retries = 3
+                batch_result = None
+                
+                while retry_count < max_retries:
+                    batch_result = self.getMyRealTimeDaily(batch)
+                    if batch_result is not None and not batch_result.empty:
+                        break
+                    
+                    retry_count += 1
+                    logger.warning(f"批次 {i//batch_size + 1} 获取实时数据失败，正在进行第 {retry_count} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+                
                 if batch_result is not None and not batch_result.empty:
                     # 添加股票代码
                     batch_result['ts_code'] = ts_code_list_batch
                     all_results.append(batch_result)
+                else:
+                    logger.error(f"批次 {i//batch_size + 1} 获取实时数据失败，已达到最大重试次数 {max_retries} 次")
             
             # 合并所有批次的结果
             if all_results:
