@@ -201,3 +201,147 @@ class GetMyData:
             logger.error("获取所有股票实时数据失败", exc_info=True)
             return None
 
+    def getMyHistoryTime(self, ts_code: str,  start_time: str, end_time: str,time_level: str = '30') -> DataFrame:
+
+        """
+        获取MyData历史分时数据
+        API接口：https://api.mairuiapi.com/hsstock/history/股票代码.市场（如000001.SZ）/分时级别(如d)/除权方式/您的licence?st=开始时间(如20240601)&et=结束时间(如20250430)&lt=最新条数(如100)
+        演示URL：https://api.mairuiapi.com/hsstock/history/000001.SZ/d/n/LICENCE-66D8-9F96-0C7F0FBCD073?st=20250101&et=20250430&lt=100
+        :param ts_code: 股票代码，仅能传一个
+        :param time_level: 目前分时级别支持5分钟、15分钟、30分钟、60分钟、日线、周线、月线、
+        年线，对应的请求参数分别为5、15、30、60、d、w、m、y
+        :param start_time: 开始时间
+        :param end_time: 结束时间
+        开始时间以及结束时间的格式均为 YYYYMMDD 或 YYYYMMDDhhmmss，例如：'20240101' 或'20241231235959'
+        :return: 个股历史分时数据，
+        数据格式如下:
+        [{"t":"2025-12-23 10:00:00","o":11.52,"h":11.59,"l":11.5,"c":11.52,"v":172994.0,"a":199685294.58,"pc":11.52,"sf":0.0},
+        {"t":"2025-12-23 10:30:00","o":11.52,"h":11.6,"l":11.51,"c":11.58,"v":157022.0,"a":181697451.86,"pc":11.52,"sf":0.0}]
+        数据字典如下：
+        字段名称	数据类型	字段说明
+        t	string	交易时间
+        o	float	开盘价
+        h	float	最高价
+        l	float	最低价
+        c	float	收盘价
+        v	float	成交量
+        a	float	成交额
+        pc	float	前收盘价
+        sf	int	停牌 1停牌，0 不停牌
+        """
+        # 验证参数
+        if not ts_code:
+            logger.error("股票代码不能为空")
+            return None
+        
+        # 支持的时间级别列表
+        valid_time_levels = ['5', '15', '30', '60', 'd', 'w', 'm', 'y']
+        if time_level not in valid_time_levels:
+            logger.error(f"无效的时间级别：{time_level}，支持的级别为：{valid_time_levels}")
+            return None
+        
+        # 除权方式默认为"n"（不除权），最新条数默认为100
+        adjust_flag = "n"
+        # limit = "100"
+        
+        # 构建URL
+        url = (
+            f"https://api.mairuiapi.com/hsstock/history/{ts_code}/{time_level}/{adjust_flag}/{self.license_key}" 
+            f"?st={start_time}&et={end_time}"
+            # f"&lt={limit}"
+        )
+        
+        # 设置自动重试机制，最多重试3次
+        retry_count = 0
+        max_retries = 3
+        
+        while retry_count < max_retries:
+            try:
+                logger.info(f"获取{ts_code}的历史分时数据，时间级别：{time_level}，第 {retry_count + 1} 次尝试")
+                
+                # 发送请求，设置超时
+                response = requests.get(url, timeout=10)
+                
+                # 检查响应状态码
+                if response.status_code != 200:
+                    logger.error(f"请求历史分时数据失败，状态码：{response.status_code}，原因：{response.reason}")
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                        time.sleep(1)  # 等待1秒后重试
+                    continue
+                
+                # 检查响应内容是否为空
+                if not response.text.strip():
+                    logger.error("历史分时API返回空响应")
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                        time.sleep(1)  # 等待1秒后重试
+                    continue
+                
+                # 解析JSON响应
+                data = response.json()
+                if not data:
+                    logger.error("历史分时API返回空数据")
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                        time.sleep(1)  # 等待1秒后重试
+                    continue
+                
+                # 转换为DataFrame并映射列名
+                df = DataFrame(data)
+                df = df.rename(columns={
+                    "t": "trade_time",
+                    "o": "open",
+                    "h": "high",
+                    "l": "low",
+                    "c": "close",
+                    "v": "vol",
+                    "a": "amount",
+                    "pc": "pre_close",
+                    "sf": "suspension_flag"
+                })
+                
+                # 添加股票代码和时间级别信息
+                df['ts_code'] = ts_code
+                df['time_level'] = time_level
+                
+                logger.info(f"成功获取{ts_code}的历史分时数据，共{len(df)}条记录")
+                return df
+                
+            except requests.exceptions.Timeout as e:
+                logger.error(f"历史分时API请求超时：{str(e)}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+            except requests.exceptions.ConnectionError as e:
+                logger.error(f"历史分时API连接错误：{str(e)}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+            except requests.exceptions.RequestException as e:
+                logger.error(f"历史分时API请求异常：{str(e)}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+            except ValueError as e:
+                logger.error(f"历史分时API响应解析错误：{str(e)}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+            except Exception as e:
+                logger.error(f"获取历史分时数据失败：{str(e)}", exc_info=True)
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
+                    time.sleep(1)  # 等待1秒后重试
+        
+        # 达到最大重试次数仍未成功
+        logger.error(f"获取{ts_code}的历史分时数据失败，已达到最大重试次数 {max_retries} 次")
+        return None

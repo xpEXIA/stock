@@ -7,7 +7,7 @@ class GetTSData:
     获取TuShare股票数据
     """
 
-    def __init__(self, ts_api=ts_api):
+    def __init__(self, ts_api: object = ts_api) -> None:
 
         self.ts_api = ts_api
 

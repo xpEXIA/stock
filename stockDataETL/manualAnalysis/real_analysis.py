@@ -22,9 +22,9 @@ avg_vol_5 = pd.read_sql(
             market,
             ROUND(avg(circ_mv),2) avg_circ_mv,
             ROUND(avg(vol),2) avg_vol,
-            ROUND(sum(net_mf_amount),2) net_5_amount
+            ROUND(sum(net_mf_amount),2) net_5d_amount
         from dw_daily_trends
-        where trade_date >= '2025-12-09' and trade_date <= '2025-12-15'
+        where trade_date >= '2025-12-22' and trade_date <= '2025-12-26'
         group by ts_code,name,market
     """),
     con=engine
