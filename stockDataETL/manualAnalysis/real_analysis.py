@@ -22,7 +22,7 @@ avg_vol_5 = pd.read_sql(
             market,
             ROUND(avg(circ_mv),2) avg_circ_mv,
             ROUND(avg(vol),2) avg_vol,
-            ROUND(sum(net_mf_amount),2) net_5d_amount
+            ROUND(sum(net_mf_amount),2) net_d5_amount
         from dw_daily_trends
         where trade_date >= '2025-12-22' and trade_date <= '2025-12-26'
         group by ts_code,name,market
@@ -46,7 +46,7 @@ result = cal_data[
     (cal_data.pct_chg >= 3) & (cal_data.pct_chg <= 6) &
     (cal_data.avg_circ_mv >= 500000) & (cal_data.avg_circ_mv <= 2200000) &
     (cal_data.turnover_rate_f >= 5) & (cal_data.turnover_rate_f <= 15) &
-#    (cal_data.net_5_amount > 0) &
+#    (cal_data.net_d5_amount > 0) &
     (cal_data.vol_ratio > 1) &
     ~cal_data.name.str.contains('ST',na=False)
 ]
@@ -69,47 +69,14 @@ result = result[[
     'vol_ratio',
     'avg_circ_mv',
     'avg_vol',
-    'net_5_amount'
+    'net_d5_amount'
 ]].rename(columns={
     'update':'update_time',
 })
 
 result.to_sql('dm_daily_one_night_stock',con=engine,if_exists='append',index=False)
 
+from stockDataETL.dataTransform.dm_daily_one_night_stock_history import dm_daily_one_night_stock_history
+dm_daily_one_night_stock_history(start_time='20250701',end_time='20251208')
 
-# cal_data = pd.read_sql(
-#     text("""
-#         select
-#             trade_date,
-#             ts_code,
-#             turnover_rate_f,
-#             pct_chg,
-#             volume_ratio
-#         from dw_daily_trends
-#         where trade_date = '2025-11-14'
-#     """),
-#     con=engine
-# )
 
-# cal_data = pd.read_sql(
-#     text("""
-#         select
-#             ts_code,
-#             open,
-#             close,
-#             high,
-#             pct_chg,
-#             pre_close
-#         from dw_daily_trends
-#         where trade_date = '2025-11-17'
-#     """),
-#     con=engine
-# )
-#
-# result = result.merge(cal_data, how='left', on=['ts_code'])
-# result['isup'] = result['high'] - result['pre_close']
-# result['openup'] = result['open'] - result['pre_close']
-# print(len(result))
-# print(len( result[result['openup'] > 0]))
-# print(len( result[result['isup'] > 0]))
-# print(len( result[result['pct_chg_y'] > 0]))

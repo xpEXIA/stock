@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
-from stockDataETL import logger
+from sqlalchemy import text
+from stockDataETL import logger, engine
 
 
 def get_trade_date_period(
@@ -18,53 +19,55 @@ def get_trade_date_period(
 
     if mode=='pre':
         cal_date = pd.read_sql(
-            """
+            text(f"""
             select cal_date,
                    is_open
             from ods_trade_cal
             where cal_date <= :trade_date
               and cal_date >= :trade_date_st
             order by cal_date desc
-            """,
-            {
-                "trade_date": date,
+            """),
+            params={
+                "trade_date": datetime.strptime(date, "%Y-%m-%d").strftime('%Y%m%d'),
                 "trade_date_st": (
-                        datetime.strptime(date, "%Y%m%d") - timedelta(days=20+period)
+                        datetime.strptime(date, "%Y-%m-%d") - timedelta(days=20+period)
                 ).strftime('%Y%m%d')
-            }
+            },
+            con=engine
         )
 
         n = 0
-        for date in cal_date.cal_date.tolist():
-            n += cal_date[cal_date.cal_date == date]['is_open']
+        for i in cal_date.cal_date.tolist():
+            n += int(cal_date[cal_date.cal_date == i]['is_open'].iloc[0])
             if n == 2:
-                end_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+                end_date = datetime.strptime(i, "%Y%m%d").strftime("%Y-%m-%d")
             elif n == 1 + period:
-                start_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+                start_date = datetime.strptime(i, "%Y%m%d").strftime("%Y-%m-%d")
     else:
         cal_date = pd.read_sql(
-            """
+            text(f"""
             select cal_date,
                    is_open
             from ods_trade_cal
             where cal_date >= :trade_date
               and cal_date <= :trade_date_end
             order by cal_date asc
-            """,
-            {
-                "trade_date": date,
-                "trade_date_end": (
-                        datetime.strptime(date, "%Y%m%d") + timedelta(days=20 + period)
+            """),
+            params={
+                "trade_date": datetime.strptime(date, "%Y-%m-%d").strftime('%Y%m%d'),
+                "trade_date_st": (
+                        datetime.strptime(date, "%Y-%m-%d") - timedelta(days=20+period)
                 ).strftime('%Y%m%d')
-            }
+            },
+            con=engine
         )
 
         n = 0
-        for date in cal_date.cal_date.tolist():
-            n += cal_date[cal_date.cal_date == date]['is_open']
+        for i in cal_date.cal_date.tolist():
+            n += int(cal_date[cal_date.cal_date == i]['is_open'].iloc[0])
             if n == 2:
-                start_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+                start_date = datetime.strptime(i, "%Y%m%d").strftime("%Y-%m-%d")
             elif n == 1 + period:
-                end_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+                end_date = datetime.strptime(i, "%Y%m%d").strftime("%Y-%m-%d")
     logger.info(f"获取量比计算周期成功, 时间段为{start_date}至{end_date}")
     return [start_date, end_date]

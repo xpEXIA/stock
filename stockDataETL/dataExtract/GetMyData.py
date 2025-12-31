@@ -266,6 +266,9 @@ class GetMyData:
                 if response.status_code != 200:
                     logger.error(f"请求历史分时数据失败，状态码：{response.status_code}，原因：{response.reason}")
                     retry_count += 1
+                    if response.status_code == 429:
+                        logger.warning("已超出调用限制，等待10s")
+                        time.sleep(10)
                     if retry_count < max_retries:
                         logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
                         time.sleep(1)  # 等待1秒后重试
@@ -283,13 +286,9 @@ class GetMyData:
                 # 解析JSON响应
                 data = response.json()
                 if not data:
-                    logger.error("历史分时API返回空数据")
-                    retry_count += 1
-                    if retry_count < max_retries:
-                        logger.warning(f"正在进行第 {retry_count + 1} 次重试...")
-                        time.sleep(1)  # 等待1秒后重试
-                    continue
-                
+                    logger.warning(f"{ts_code}历史分时API返回空数据")
+                    return DataFrame()
+
                 # 转换为DataFrame并映射列名
                 df = DataFrame(data)
                 df = df.rename(columns={
