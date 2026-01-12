@@ -1,7 +1,5 @@
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from pandas import DataFrame
-
 from stockDataETL.dataLoad.DataLoad import DataLoad
 
 
@@ -23,11 +21,11 @@ def get_pretrade_date(
             cal_date,
             pretrade_date
         from ods_trade_cal
-        where cal_date >= date_sub(:trade_date, interval :interval day) and cal_date <= :trade_date
+        where cal_date >= :start_date and cal_date <= :trade_date
         """,
         {
             "trade_date": datetime.strptime(trade_date, "%Y-%m-%d").strftime("%Y%m%d"),
-            "interval": interval
+            'start_date': (datetime.strptime(trade_date, "%Y-%m-%d") - timedelta(days=interval)).strftime("%Y%m%d")
             # "trade_date": "20250716"
         }
     )
