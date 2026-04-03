@@ -64,11 +64,7 @@ def dm_stock_performance_daily(
         down_limit_days=("pct_chg", "count")
     ).reset_index().rename(columns={"pct_chg": "down_limit_days"})
 
-    pretrade_date = get_pretrade_date(trade_date, interval)
-    pretrade_date["cal_date"] = (pretrade_date["cal_date"]
-                     .apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")))
-    pretrade_date["pretrade_date"] = (pretrade_date["pretrade_date"]
-                     .apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")))
+    pretrade_date = get_pretrade_date(trade_date, interval+1)
     def _cal_pct_chg(
             data,
             up_data,
@@ -84,8 +80,11 @@ def dm_stock_performance_daily(
             # lambda x: (
             #     datetime.strptime(x, "%Y-%m-%d") + timedelta(days=1)
             # ).strftime("%Y-%m-%d")
-            lambda x: (pretrade_date["pretrade_date"][pretrade_date["cal_date"] == x].values[0])
+            lambda x: (pretrade_date["cal_date"][pretrade_date["pretrade_date"] == x].values[0]
+                       if not pretrade_date["cal_date"][pretrade_date["pretrade_date"] == x].empty
+                       else None)
         )
+        up_data = up_data.dropna()
 
         return pd.merge(
             up_data,

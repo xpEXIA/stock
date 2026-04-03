@@ -74,7 +74,7 @@ async def asyncDailyTask(request):
         # 异步处理dm层数据
         dm_tasks = [
             loop.run_in_executor(None, partial(dm_daily_replay_daily_task, trade_date=trade_date)),
-            loop.run_in_executor(None, partial(dm_stock_performance_daily_task, trade_date=trade_date)),
+            # loop.run_in_executor(None, partial(dm_stock_performance_daily_task, trade_date=trade_date)),
             loop.run_in_executor(None, partial(dm_up_limit_statistics_daily_task, trade_date=trade_date)),
             loop.run_in_executor(None, partial(dm_daily_vol_unusual_daily_task, trade_date=trade_date)),
         ]

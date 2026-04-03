@@ -36,4 +36,8 @@ def get_pretrade_date(
     if interval == 0:
         return datetime.strptime(pretrade_date['pretrade_date'].values[0], "%Y%m%d").strftime("%Y-%m-%d")
     else:
+        pretrade_date["cal_date"] = (pretrade_date["cal_date"]
+                                     .apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")))
+        pretrade_date["pretrade_date"] = (pretrade_date["pretrade_date"]
+                                          .apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")))
         return pretrade_date
